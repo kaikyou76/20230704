@@ -6,8 +6,9 @@ public class LoadStaffInfoWriter implements ItemWriter<Object> {
         this.importDir = importDir;
         this.exportDir = exportDir;
     }
-
-    public void write(List<Object> plist) throws Exception {
+	
+    @Override
+    public void write(List<? extends Object> plist) throws Exception {
         List<String> fileList = listFilesInDirectory(importDir);
         for (String fileName : fileList) {
             copyAndDeleteFile(importDir, exportDir, fileName);
