@@ -1,3 +1,11 @@
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
+
 public class LoadStaffInfoWriter implements ItemWriter<Object> {
     private String importDir;
     private String exportDir;
@@ -6,7 +14,7 @@ public class LoadStaffInfoWriter implements ItemWriter<Object> {
         this.importDir = importDir;
         this.exportDir = exportDir;
     }
-	
+
     @Override
     public void write(List<? extends Object> plist) throws Exception {
         List<String> fileList = listFilesInDirectory(importDir);
@@ -32,8 +40,8 @@ public class LoadStaffInfoWriter implements ItemWriter<Object> {
     }
 
     private void copyAndDeleteFile(String sourceDir, String targetDir, String fileName) throws IOException {
-        Path sourcePath = Path.of(sourceDir, fileName);
-        Path targetPath = Path.of(targetDir, fileName);
+        Path sourcePath = Paths.get(sourceDir, fileName);
+        Path targetPath = Paths.get(targetDir, fileName);
 
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
         Files.delete(sourcePath);
