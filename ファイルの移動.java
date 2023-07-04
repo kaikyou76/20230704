@@ -6,17 +6,16 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoadStaffInfoWriter implements ItemWriter<Object> {
+public class LoadStaffInfoWriter {
     private String importDir;
     private String exportDir;
 
-    LoadStaffInfoWriter(String importDir, String exportDir) {
+    public LoadStaffInfoWriter(String importDir, String exportDir) {
         this.importDir = importDir;
         this.exportDir = exportDir;
     }
 
-    @Override
-    public void write(List<? extends Object> plist) throws Exception {
+    public void write(List<?> plist) throws Exception {
         List<String> fileList = listFilesInDirectory(importDir);
         for (String fileName : fileList) {
             copyAndDeleteFile(importDir, exportDir, fileName);
@@ -40,8 +39,8 @@ public class LoadStaffInfoWriter implements ItemWriter<Object> {
     }
 
     private void copyAndDeleteFile(String sourceDir, String targetDir, String fileName) throws IOException {
-        Path sourcePath = Paths.get(sourceDir, fileName);
-        Path targetPath = Paths.get(targetDir, fileName);
+        Path sourcePath = new File(sourceDir, fileName).toPath();
+        Path targetPath = new File(targetDir, fileName).toPath();
 
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
         Files.delete(sourcePath);
@@ -57,8 +56,8 @@ public class MyClass {
             LoadStaffInfoWriter writer = new LoadStaffInfoWriter(importDir, exportDir);
             List<Object> plist = new ArrayList<>();
             writer.write(plist);
-        } catch (IOException e) {
-            System.out.println("エラーファイルの作成に失敗しました");
+        } catch (Exception e) {
+            System.out.println("処理中にエラーが発生しました");
             e.printStackTrace();
         }
     }
