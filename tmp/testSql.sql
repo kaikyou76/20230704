@@ -35,7 +35,7 @@ INSERT INTO tmp_executive (executive_post_cd, create_date, update_date) VALUES
 ('EXE003', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544');
 
 /*trn_user情報*/
-INSERT INTO trn_user (user_role, shared_id, enabled_shared_user, fulltime_employee, biz_employee_id, login_id, login_pw, cucm_login_id, user_nm_kanji, user_nm_kana, birthday, last_nm, first_nm, pin, telephone_no, enable_cti_application_use, manager_user_id, department, last_pw_update_timestamp, authenticate_failure_num, account_lock, create_date, update_date)
+INSERT INTO trn_user (user_role, shared_id, enabled_shared_use, fulltime_employee, biz_employee_id, login_id, login_pw, cucm_login_id, user_nm_kanji, user_nm_kana, birthday, last_nm, first_nm, pin, telephone_no, enable_cti_application_use, manager_user_id, department, last_pw_update, authenticate_failure_num, account_lock, create_date, update_date)
 VALUES
 ('O', NULL, 'Y', 'Y', 'EMP001', 'user001', 'password001', 'cucm001', '田中太郎', 'たなかたろう', '19900101', '田中', '太郎', '12345', '0123456789', 'Y', NULL, '部署A', '2023-07-01 10:00:00.393544', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
 ('O', NULL, 'Y', 'Y', 'EMP002', 'user002', 'password002', 'cucm002', '山田花子', 'やまだはなこ', '19900202', '山田', '花子', '23456', '0123456789', 'Y', NULL, '部署B', '2023-07-01 10:00:00.393544', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
