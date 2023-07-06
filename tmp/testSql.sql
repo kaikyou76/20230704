@@ -79,7 +79,7 @@ VALUES
 (6, 5, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544');
 
 /*trn_phone情報*/
-INSERT INTO trn_phone (branch_id, section_id, device_pool_id, phone_template_id, calling_search_space_id, location_id, device_type_id, owner_user_id, device_nm, user_locale, built_in_bridge, privacy, addon_module_id_1, addon_module_id_2, addon_module_id_3, speed_dial_json, remarks, update_status, delete_flg, create_date, update_date)
+INSERT INTO trn_phone (branch_id, section_id, device_pool_id, phone_template_id, calling_search_space_id, location_id, device_type_id, owner_user_id, device_nm, user_locale, built_in_bridge, privacy, addon_module_id_1, addon_module_id_2, addon_module_id_3, speed_dial, remarks, update_status, delete_flg, create_date, update_date)
 VALUES
 (1, 1, 1, 1, 1, 1, 1, NULL, 'Phone 1', 'English', 'Yes', 'Yes', 1, 2, 3, '{"1": "John"}', 'Remarks 1', 'O', 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
 (1, 1, 1, 1, 1, 1, 1, NULL, 'Phone 2', 'English', 'Yes', 'Yes', 4, 5, 6, '{"2": "Jane"}', 'Remarks 2', 'O', 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),

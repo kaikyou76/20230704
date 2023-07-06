@@ -1,0 +1,48 @@
+<insert id="insAdditionUserDetail" parameterType="Map"> 
+<selectKey keyProperty="appNextId" resultType="int"
+order="BEFORE">
+select nextval('trn_user_user_id_seq')
+</selectKey>
+insert into trn user 
+select 
+  #{appNextId} as user id,
+  '0' as user role, 
+  '0' as enabled_shared_use, 
+  case when tmp_ad.position = '_社員' then '1' when tmp_ad.position = '_派遣社員' then '0' end as fulltime_employee, 
+  case when tmp_ad.position = '_社員' THEN tmp_integratedid_employee.birthday when tmp_ad.POSITION = '_派遣社員' THEN CONCAT(
+    '0', tmp_integratedid_employee.employee_cd
+  ) end as cucm_login_pw, 
+  tmp_integratedid_employee.employee_cd AS login_id, 
+  tmp_integratedid_employeeemployee.employee_cd AS biz_employee_id, 
+  tmp_integratedid_employee.employee_cd AS cucm_login_id, 
+  tmp_integratedid employee.employee_nm_kanji, 
+  tmp_integratedid_employee.employee_nm_kana, 
+  tmp_integratedid_employee.birthday, 
+  tmp_integratedid employee.department_nm AS department, 
+  COALESCE(
+    tmp_ad.first_nm, tmp_integratedid_employee.employee cd
+  ) AS first name, 
+  COALESCE(
+    tmp_ad.last_nm, tmp_integratedid_employee.employee_cd
+  ) AS last_name, 
+  '12345' as pin, 
+  '1' as enable_cti_application_use, 
+  now() AS last_pw_update, 
+  0 as authenticate_failure_num, 
+  'ס' as account_lock, 
+  now() AS create_date, 
+  now() AS update_date 
+from 
+  tmp integratedid employee 
+  left outer join tmp_ad ON tmp_integratedid_employee.employee_cd = tmp_ad.login_nm 
+where 
+  employee_cd = (
+    select 
+      distinct employee_cd 
+    from 
+      tmp integratedid_employee 
+    where 
+      employee_cd = #{employeeCode}
+      )
+</insert>
+

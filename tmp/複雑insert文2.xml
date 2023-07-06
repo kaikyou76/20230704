@@ -1,0 +1,50 @@
+<insert id="insAdditionUserDetail" parameterType="Map">
+  INSERT INTO trn_user (
+    user_role,
+    enabled_shared_use,
+    fulltime_employee,
+    cucm_login_pw,
+    login_id,
+    biz_employee_id,
+    cucm_login_id,
+    employee_nm_kanji,
+    employee_nm_kana,
+    birthday,
+    department,
+    first_name,
+    last_name,
+    pin,
+    enable_cti_application_use,
+    last_pw_update,
+    authenticate_failure_num,
+    account_lock,
+    create_date,
+    update_date
+  )
+  SELECT
+    '0' as user_role,
+    '0' as enabled_shared_use,
+    CASE WHEN tmp_ad.position = '_社員' THEN '1' WHEN tmp_ad.position = '_派遣社員' THEN '0' END as fulltime_employee,
+    CASE WHEN tmp_ad.position = '_社員' THEN tmp_integratedid_employee.birthday WHEN tmp_ad.position = '_派遣社員' THEN CONCAT('0', tmp_integratedid_employee.employee_cd) END as cucm_login_pw,
+    tmp_integratedid_employee.employee_cd as login_id,
+    tmp_integratedid_employee.employee_cd as biz_employee_id,
+    tmp_integratedid_employee.employee_cd as cucm_login_id,
+    tmp_integratedid_employee.employee_nm_kanji,
+    tmp_integratedid_employee.employee_nm_kana,
+    tmp_integratedid_employee.birthday,
+    tmp_integratedid_employee.department_nm as department,
+    COALESCE(tmp_ad.first_nm, tmp_integratedid_employee.employee_cd) as first_name,
+    COALESCE(tmp_ad.last_nm, tmp_integratedid_employee.employee_cd) as last_name,
+    '12345' as pin,
+    '1' as enable_cti_application_use,
+    now() as last_pw_update,
+    0 as authenticate_failure_num,
+    'ס' as account_lock,
+    now() as create_date,
+    now() as update_date
+  FROM
+    tmp_integratedid_employee
+  LEFT OUTER JOIN tmp_ad ON tmp_integratedid_employee.employee_cd = tmp_ad.login_nm
+  WHERE
+    tmp_integratedid_employee.employee_cd = #{employeeCode}
+</insert>
