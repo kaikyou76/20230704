@@ -1,18 +1,18 @@
-<insert id="insAdditionUserDetail" parameterType="Map">
-  INSERT INTO trn_user (
+INSERT INTO trn_user (
     user_role,
     enabled_shared_use,
     fulltime_employee,
     cucm_login_pw,
     login_id,
+    login_pw,
     biz_employee_id,
     cucm_login_id,
-    employee_nm_kanji,
-    employee_nm_kana,
+    user_nm_kanji,
+    user_nm_kana,
     birthday,
     department,
-    first_name,
-    last_name,
+    first_nm,
+    last_nm,
     pin,
     enable_cti_application_use,
     last_pw_update,
@@ -27,6 +27,7 @@
     CASE WHEN tmp_ad.position = '_社員' THEN '1' WHEN tmp_ad.position = '_派遣社員' THEN '0' END as fulltime_employee,
     CASE WHEN tmp_ad.position = '_社員' THEN tmp_integratedid_employee.birthday WHEN tmp_ad.position = '_派遣社員' THEN CONCAT('0', tmp_integratedid_employee.employee_cd) END as cucm_login_pw,
     tmp_integratedid_employee.employee_cd as login_id,
+    '' as login_pw,
     tmp_integratedid_employee.employee_cd as biz_employee_id,
     tmp_integratedid_employee.employee_cd as cucm_login_id,
     tmp_integratedid_employee.employee_nm_kanji,
@@ -47,4 +48,3 @@
   LEFT OUTER JOIN tmp_ad ON tmp_integratedid_employee.employee_cd = tmp_ad.login_nm
   WHERE
     tmp_integratedid_employee.employee_cd = #{employeeCode}
-</insert>
