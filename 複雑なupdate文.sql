@@ -13,3 +13,22 @@ WHERE trn_phone.phone_id IN (
   INNER JOIN trn_user ON trn_user.user_id = rel_cucm_user_phone.user_id
   WHERE trn_user.biz_employee_id = '1984568'
 );
+
+<select id="selAdditionUserSectionDetail" resultType="Map">
+SELECT
+    A.user_id,
+    E.company_cd,
+    LPAD(E.department_cd, 5, '0') AS department_cd,
+    E.department_nm,
+    O.print_order
+FROM
+    tmp_integratedid_employee E
+    INNER JOIN mst_section M ON E.department_cd = M.section_cd
+    INNER JOIN trn_user A ON E.employee_cd = A.biz_employee_id
+    INNER JOIN tmp_integratedid_organization O ON E.organization_cd = O.Organization_cd
+WHERE
+    E.company_cd = #{companyCode}
+    AND LPAD(E.department_cd, 5, '0') = #{departmentCode}
+    AND E.employee_cd = #{employeeCode}
+</select>
+
