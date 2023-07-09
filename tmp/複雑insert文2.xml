@@ -1,3 +1,4 @@
+<insert id="insAdditionUserDetail" parameterType="Map">
 INSERT INTO trn_user (
     user_role,
     enabled_shared_use,
@@ -48,3 +49,4 @@ INSERT INTO trn_user (
   LEFT OUTER JOIN tmp_ad ON tmp_integratedid_employee.employee_cd = tmp_ad.login_nm
   WHERE
     tmp_integratedid_employee.employee_cd = #{employeeCode}
+</insert>
