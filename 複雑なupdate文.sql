@@ -66,6 +66,23 @@ INNER JOIN trn_phone ON rel_cucm_user_phone.phone_id = trn_phone.phone_id
 WHERE rel_cucm_user_phone.user_id = CAST(#{appUserId} AS INTEGER)
   AND LPAD(CAST(trn_phone.section_id AS TEXT), 5, '0') = LPAD(#{sectionId}, 5, '0')
   AND delete_flg != '1';
-	
+
+
+  
+SELECT
+    trn_user.last_nm,
+    trn_user.first_nm,
+    REPLACE(trn_user.telephone_no, '_', '') AS telephone_no,
+    LOWER(trn_user.last_nm) || '_' || LOWER(trn_user.first_nm) AS full_name
+FROM
+    trn_user
+    INNER JOIN rel_cucm_user_phone ON rel_cucm_user_phone.user_id = trn_user.user_id
+    INNER JOIN rel_user_section ON rel_user_section.user_id = trn_user.user_id
+WHERE
+    rel_cucm_user_phone.delete_flg = '1'
+    AND rel_user_section.delete_reserve = '1'
+ORDER BY
+    trn_user.telephone_no ASC;
+ 
 
 
