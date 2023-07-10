@@ -58,5 +58,14 @@ SELECT
     CAST(LPAD(department_cd, 5, '0') AS INTEGER) AS section_id
 FROM
     your_table_name;
+	
+	
+SELECT COUNT(1)
+FROM rel_cucm_user_phone
+INNER JOIN trn_phone ON rel_cucm_user_phone.phone_id = trn_phone.phone_id
+WHERE rel_cucm_user_phone.user_id = CAST(#{appUserId} AS INTEGER)
+  AND LPAD(CAST(trn_phone.section_id AS TEXT), 5, '0') = LPAD(#{sectionId}, 5, '0')
+  AND delete_flg != '1';
+	
 
 
