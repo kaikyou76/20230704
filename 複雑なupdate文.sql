@@ -52,4 +52,11 @@ WHERE
     AND E.employee_cd = #{employeeCode}
 </select>
 
+INSERT INTO biz_shift(user_id, section_id)
+SELECT
+    '2' AS user_id,
+    CAST(LPAD(department_cd, 5, '0') AS INTEGER) AS section_id
+FROM
+    your_table_name;
+
 
