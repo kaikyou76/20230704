@@ -1,2 +1,4 @@
 platform.openai.com
 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
+↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+Ctrl + Shift + P
