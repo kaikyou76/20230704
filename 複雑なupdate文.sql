@@ -84,5 +84,31 @@ WHERE
 ORDER BY
     trn_user.telephone_no ASC;
  
+ 
+<insert id="insAdditionUserSection" parameterType="Map">
+INSERT INTO rel_user_section (
+    user_id,
+    section_id,
+    delete_reserve,
+    create_date,
+    update_date
+)
+SELECT
+    A.user_id,
+    CAST(LPAD(E.department_cd, 5, '0') AS INTEGER) AS section_id,
+    'O' AS delete_reserve,
+    NOW(),
+    NOW()
+FROM
+    tmp_integratedid_employee E
+    INNER JOIN trn_user A ON E.employee_cd = A.biz_employee_id
+    INNER JOIN tmp_integratedid_organization O ON E.organization_cd = O.Organization_cd
+WHERE
+    E.company_cd = #{companyCode}
+    AND LPAD(E.department_cd, 5, '0') = #{departmentCode}
+    AND E.employee_cd = #{employeeCode}
+LIMIT 1;
+</insert>
+
 
 
