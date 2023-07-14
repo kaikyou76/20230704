@@ -98,18 +98,19 @@ VALUES
 (8, 4, 4, 4, 4, 4, 4, NULL, 'Phone 15', 'English', 'Yes', 'Yes', 40, 41, 42, '{"14": "MmXa"}', 'Remarks 15', 'O', 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
 
 
-INSERT INTO trn_line (fmc_id, charge_id, directory_no, fwd_all_destination, fwd_all_css, fwd_busy_destination, fwd_busy_css, fwd_noans_destination, fwd_noans_css, fwd_noans_ring_duration, maximum_no_of_calls, busy_trigger, calling_party_transformation_mask, gw_repletion_special_no, voice_logger, representative_pickup, update_status, create_date, update_date)
+INSERT INTO trn_line (fmc_id, charge_id, voice_mail_profile_id, pickup_group_id, directory_no, fwd_all_destination, fwd_all_css, fwd_busy_destination, fwd_busy_css, fwd_noans_destination, fwd_noans_css, fwd_noans_ring_duration, maximum_no_of_calls, busy_trigger, calling_party_transformation_mask, gw_repletion_special_no, voice_logger, representative_pickup, update_status, create_date, update_date)
 VALUES
-(NULL, 0, '01234567', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
-(NULL, 0, '12345678', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
-(NULL, 0, '23456789', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
-(NULL, 0, '34567890', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
-(NULL, 0, '45678901', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
-(NULL, 0, '56789012', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
-(NULL, 0, '67890123', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
-(NULL, 0, '78901234', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
-(NULL, 0, '89012345', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
-(NULL, 0, '90123456', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544');
+(NULL, 0, NULL, NULL, '01234567', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
+(NULL, 0, NULL, NULL, '12345678', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
+(NULL, 0, NULL, NULL, '23456789', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
+(NULL, 0, NULL, NULL, '34567890', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
+(NULL, 0, NULL, NULL, '45678901', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
+(NULL, 0, NULL, NULL, '56789012', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
+(NULL, 0, NULL, NULL, '67890123', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
+(NULL, 0, NULL, NULL, '78901234', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
+(NULL, 0, NULL, NULL, '89012345', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544'),
+(NULL, 0, NULL, NULL, '90123456', NULL, NULL, NULL, NULL, NULL, NULL, 20, 2, 2, NULL, NULL, 'O', 0, 'O', '2023-07-01 10:00:00.393544', '2023-07-01 10:00:00.393544');
+
 
 INSERT INTO rel_cucm_phone_line (phone_id, line_id, no, line_txt_label, external_phone_no_mask, ring_setting_nm, dialin, remarks, delete_flg, create_date, update_date)
 VALUES
