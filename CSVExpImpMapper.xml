@@ -292,69 +292,69 @@
 			, v_search_info.enabledSharedUse
 			, v_search_info.fmcId
 			, v_search_info.fomaNo
-			, ROW_NUMBER() OVER (ORDER BY ( ${sort} ) ${order}) AS ROW_NUMBER
+			, ROW_NUMBER() OVER (ORDER BY ( ${DEFAULT_SORT} )) AS ROW_NUMBER
 			, CASE
 				WHEN
-					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
-					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
-					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
-					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
-					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
-				THEN #{constants.TEL_USAGES_DEFAULT}			<!-- 一般紐付け -->
+					    COALESCE(v_phone_user.status, #{TEL_USAGES_STATUS_NOTHING})     = #{TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{ENABLED_SHARED_USE_PRIVATE}) = #{ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{TEL_USAGES_DEFAULT}			<!-- 一般紐付け -->
 				WHEN
-					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_MANY} <!-- 電話     1－N ユーザー -->
-					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
-					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
-					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
-					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
-				THEN #{constants.TEL_USAGES_COMMON_USER}		<!-- 共有ユーザー -->
+					    COALESCE(v_phone_user.status, #{TEL_USAGES_STATUS_NOTHING})     = #{TEL_USAGES_STATUS_MANY} <!-- 電話     1－N ユーザー -->
+					AND COALESCE(v_user_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{ENABLED_SHARED_USE_PRIVATE}) = #{ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{TEL_USAGES_COMMON_USER}		<!-- 共有ユーザー -->
 				WHEN
-					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- 電話     1－1or0 ユーザー -->
-					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- ユーザー 1or0－1 電話 -->
-					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_MANY}   <!-- ライン   1－N 電話 -->
-					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
-					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
-				THEN #{constants.TEL_USAGES_SHARED_LINE}		<!-- シェアードライン -->
+					    COALESCE(v_phone_user.status, #{TEL_USAGES_STATUS_NOTHING})     IN (#{TEL_USAGES_STATUS_SINGLE},#{TEL_USAGES_STATUS_NOTHING}) <!-- 電話     1－1or0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{TEL_USAGES_STATUS_NOTHING})       IN (#{TEL_USAGES_STATUS_SINGLE},#{TEL_USAGES_STATUS_NOTHING}) <!-- ユーザー 1or0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_MANY}   <!-- ライン   1－N 電話 -->
+					AND COALESCE(v_tel_line.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{ENABLED_SHARED_USE_PRIVATE}) = #{ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{TEL_USAGES_SHARED_LINE}		<!-- シェアードライン -->
 				WHEN
-					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
-					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_MANY}   <!-- ユーザー 1－N 電話 -->
-					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
-					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
-					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
-				THEN #{constants.TEL_USAGES_MULTI_DEVICE} 		<!-- マルチデバイス -->
+					    COALESCE(v_phone_user.status, #{TEL_USAGES_STATUS_NOTHING})     = #{TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_MANY}   <!-- ユーザー 1－N 電話 -->
+					AND COALESCE(v_line_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{ENABLED_SHARED_USE_PRIVATE}) = #{ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{TEL_USAGES_MULTI_DEVICE} 		<!-- マルチデバイス -->
 				WHEN
-					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- 電話     1－1or0 ユーザー -->
-					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- ユーザー 1or0－1 電話 -->
-					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE}      <!-- ライン   1－1 電話 -->
-					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_MANY}        <!-- 電話     1－N ライン -->
-					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE}   <!-- 共用電話 0 -->
-				THEN #{constants.TEL_USAGES_MULTI_LINE}			<!-- マルチライン -->
+					    COALESCE(v_phone_user.status, #{TEL_USAGES_STATUS_NOTHING})     IN (#{TEL_USAGES_STATUS_SINGLE},#{TEL_USAGES_STATUS_NOTHING}) <!-- 電話     1－1or0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{TEL_USAGES_STATUS_NOTHING})       IN (#{TEL_USAGES_STATUS_SINGLE},#{TEL_USAGES_STATUS_NOTHING}) <!-- ユーザー 1or0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE}      <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_MANY}        <!-- 電話     1－N ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{ENABLED_SHARED_USE_PRIVATE}) = #{ENABLED_SHARED_USE_PRIVATE}   <!-- 共用電話 0 -->
+				THEN #{TEL_USAGES_MULTI_LINE}			<!-- マルチライン -->
 				WHEN
-					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
-					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
-					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
-					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
-					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_SHARE} <!-- 共用電話 1 -->
-				THEN #{constants.TEL_USAGES_SHARED_TEL}			<!-- 共用電話機 -->
+					    COALESCE(v_phone_user.status, #{TEL_USAGES_STATUS_NOTHING})     = #{TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{ENABLED_SHARED_USE_PRIVATE}) = #{ENABLED_SHARED_USE_SHARE} <!-- 共用電話 1 -->
+				THEN #{TEL_USAGES_SHARED_TEL}			<!-- 共用電話機 -->
 				WHEN
-					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ユーザー -->
-					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- ユーザー 0－1 電話 -->
-					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
-					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
-					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
-				THEN #{constants.TEL_USAGES_NOT_LINK_USER}		<!-- 部内在庫電話機 -->
+					    COALESCE(v_phone_user.status, #{TEL_USAGES_STATUS_NOTHING})     = #{TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_NOTHING} <!-- ユーザー 0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{ENABLED_SHARED_USE_PRIVATE}) = #{ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{TEL_USAGES_NOT_LINK_USER}		<!-- 部内在庫電話機 -->
 				WHEN
-					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ユーザー -->
-					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- ユーザー 0－1 電話 -->
-					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- ライン   0－1 電話 -->
-					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ライン -->
-					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+					    COALESCE(v_phone_user.status, #{TEL_USAGES_STATUS_NOTHING})     = #{TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_NOTHING} <!-- ユーザー 0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_NOTHING} <!-- ライン   0－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{ENABLED_SHARED_USE_PRIVATE}) = #{ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
 					AND v_search_info.phoneId IS NOT NULL
-				THEN #{constants.TEL_USAGES_NOT_LINK_USER_LINE}		<!-- 電話機単体 -->
+				THEN #{TEL_USAGES_NOT_LINK_USER_LINE}		<!-- 電話機単体 -->
 				WHEN
-					COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     0－0 ライン -->
-				THEN #{constants.TEL_USAGES_NOT_LINK_TEL}		<!-- 電話機と紐付いていないユーザ -->
-				ELSE #{constants.TEL_USAGES_MANY}				<!-- 複数存在した場合 -->
+					COALESCE(v_tel_line.status, #{TEL_USAGES_STATUS_NOTHING})       = #{TEL_USAGES_STATUS_NOTHING} <!-- 電話     0－0 ライン -->
+				THEN #{TEL_USAGES_NOT_LINK_TEL}		<!-- 電話機と紐付いていないユーザ -->
+				ELSE #{TEL_USAGES_MANY}				<!-- 複数存在した場合 -->
 			END AS telUsagesStatus <!-- ユーザー×電話×ラインのパターンステータス -->
 		FROM
 			(
@@ -364,13 +364,13 @@
 				SELECT
 					phone_id,
 					CASE
-						WHEN count(phone_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
-						ELSE #{constants.TEL_USAGES_STATUS_MANY}
+						WHEN count(phone_id) <![CDATA[<=]]> 1 THEN #{TEL_USAGES_STATUS_SINGLE}
+						ELSE #{TEL_USAGES_STATUS_MANY}
 					END AS status
 				FROM
 					rel_cucm_user_phone	<!-- ユーザー－電話 -->
 				WHERE
-					delete_flg = #{constants.COM_FLG_OFF}
+					delete_flg = #{COM_FLG_OFF}
 				GROUP BY
 					phone_id
 				) v_phone_user
@@ -379,13 +379,13 @@
 				SELECT
 					line_id,
 					CASE
-						WHEN count(line_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
-						ELSE #{constants.TEL_USAGES_STATUS_MANY}
+						WHEN count(line_id) <![CDATA[<=]]> 1 THEN #{TEL_USAGES_STATUS_SINGLE}
+						ELSE #{TEL_USAGES_STATUS_MANY}
 					END AS status
 				FROM
 					rel_cucm_phone_line	<!-- ライン－電話 -->
 				WHERE
-					delete_flg = #{constants.COM_FLG_OFF}
+					delete_flg = #{COM_FLG_OFF}
 				GROUP BY
 					line_id
 				) v_line_tel
@@ -394,13 +394,13 @@
 				SELECT
 					user_id,
 				CASE
-					WHEN count(user_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
-					ELSE #{constants.TEL_USAGES_STATUS_MANY}
+					WHEN count(user_id) <![CDATA[<=]]> 1 THEN #{TEL_USAGES_STATUS_SINGLE}
+					ELSE #{TEL_USAGES_STATUS_MANY}
 				END AS status
 				FROM
 					rel_cucm_user_phone	<!-- 電話－ユーザー -->
 				WHERE
-					delete_flg = #{constants.COM_FLG_OFF}
+					delete_flg = #{COM_FLG_OFF}
 				GROUP BY
 					user_id
 				) v_user_tel
@@ -409,13 +409,13 @@
 				SELECT
 					phone_id,
 					CASE
-						WHEN count(phone_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
-						ELSE #{constants.TEL_USAGES_STATUS_MANY}
+						WHEN count(phone_id) <![CDATA[<=]]> 1 THEN #{TEL_USAGES_STATUS_SINGLE}
+						ELSE #{TEL_USAGES_STATUS_MANY}
 					END AS status
 				FROM
 					rel_cucm_phone_line	<!-- 電話－ライン -->
 				WHERE
-					delete_flg = #{constants.COM_FLG_OFF}
+					delete_flg = #{COM_FLG_OFF}
 				GROUP BY
 					phone_id
 				) v_tel_line
@@ -661,18 +661,18 @@
 			SELECT
 				  phone.phone_id
 				, CASE
-					WHEN device.device_type_nm != #{constants.TEL_TYPE_MODEL_CTI_PORT} AND line.fmc_id IS NOT NULL
-					THEN #{constants.PHONE_TYPE_COMBINED_USE}
-					WHEN device.device_type_nm = #{constants.TEL_TYPE_MODEL_CTI_PORT}
-					THEN #{constants.PHONE_TYPE_FMC}
-					ELSE #{constants.PHONE_TYPE_IP}
+					WHEN device.device_type_nm != #{TEL_TYPE_MODEL_CTI_PORT} AND line.fmc_id IS NOT NULL
+					THEN #{PHONE_TYPE_COMBINED_USE}
+					WHEN device.device_type_nm = #{TEL_TYPE_MODEL_CTI_PORT}
+					THEN #{PHONE_TYPE_FMC}
+					ELSE #{PHONE_TYPE_IP}
 				  END AS phone_class
 				, CASE
-					WHEN device.device_type_nm != #{constants.TEL_TYPE_MODEL_CTI_PORT} AND line.fmc_id IS NOT NULL
-					THEN #{constants.PHONE_TYPE_COMBINED_USE_NAME}
-					WHEN device.device_type_nm = #{constants.TEL_TYPE_MODEL_CTI_PORT}
-					THEN #{constants.PHONE_TYPE_FMC_NAME}
-					ELSE #{constants.PHONE_TYPE_IP_NAME}
+					WHEN device.device_type_nm != #{TEL_TYPE_MODEL_CTI_PORT} AND line.fmc_id IS NOT NULL
+					THEN #{PHONE_TYPE_COMBINED_USE_NAME}
+					WHEN device.device_type_nm = #{TEL_TYPE_MODEL_CTI_PORT}
+					THEN #{PHONE_TYPE_FMC_NAME}
+					ELSE #{PHONE_TYPE_IP_NAME}
 				  END AS phone_class_nm
 				, phone.device_type_id
 				, device.device_type_nm
@@ -689,14 +689,14 @@
 				, phone.phone_template_id
 				, template.phone_template_nm
 				, CASE
-					WHEN phone.update_status = #{constants.CUCM_UPDATE_FLG_FINISHED}
-					THEN #{constants.REFLECTION_FINISHED}
-					ELSE #{constants.REFLECTION_WAIT}
+					WHEN phone.update_status = #{CUCM_UPDATE_FLG_FINISHED}
+					THEN #{REFLECTION_FINISHED}
+					ELSE #{REFLECTION_WAIT}
 				  END AS status_code
 				, CASE
-				 	WHEN phone.update_status = #{constants.CUCM_UPDATE_FLG_FINISHED}
-				 	THEN #{constants.REFLECTION_FINISHED_NAME}
-					ELSE #{constants.REFLECTION_WAIT_NAME}
+				 	WHEN phone.update_status = #{CUCM_UPDATE_FLG_FINISHED}
+				 	THEN #{REFLECTION_FINISHED_NAME}
+					ELSE #{REFLECTION_WAIT_NAME}
 				  END AS status
 				, phone.remarks AS phone_remarks
 				, phone.addon_module_id_1
@@ -717,9 +717,9 @@
 				, line.fwd_noans_destination
 				, line.voice_logger
 				, CASE
-				 	WHEN line.voice_logger = #{constants.LOGGER_DATA_ON}
-				 	THEN #{constants.LOGGER_DATA_ON_NAME}
-					ELSE #{constants.LOGGER_DATA_OFF_NAME}
+				 	WHEN line.voice_logger = #{LOGGER_DATA_ON}
+				 	THEN #{LOGGER_DATA_ON_NAME}
+					ELSE #{LOGGER_DATA_OFF_NAME}
 				  END AS voice_logger_nm
 				, line.line_txt_label
 				, line.external_phone_no_mask
@@ -730,9 +730,9 @@
 				, line.line_remarks
 				, line.representative_pickup
 				, CASE
-				 	WHEN line.representative_pickup = #{constants.PICKUP_ON}
-				 	THEN #{constants.PICKUP_ON_NAME}
-					ELSE #{constants.PICKUP_OFF_NAME}
+				 	WHEN line.representative_pickup = #{PICKUP_ON}
+				 	THEN #{PICKUP_ON_NAME}
+					ELSE #{PICKUP_OFF_NAME}
 				  END AS representative_pickup_nm
 				, line.charge_id
 				, line.charge_branch_cd
@@ -790,7 +790,7 @@
 				LEFT JOIN mst_cucm_voice_mail_profile vmprofile
 					ON trn_line.voice_mail_profile_id = vmprofile.voice_mail_profile_id
 				WHERE
-					pl.delete_flg = #{constants.COM_FLG_OFF}
+					pl.delete_flg = #{COM_FLG_OFF}
 			) line
 				ON phone.phone_id = line.phone_id
 			LEFT OUTER JOIN (
@@ -811,9 +811,9 @@
 					ON trn_user.user_id = us.user_id
 				INNER JOIN mst_section
 					 ON us.section_id = mst_section.section_id
-				 	AND up.delete_flg = #{constants.COM_FLG_OFF}
+				 	AND up.delete_flg = #{COM_FLG_OFF}
 				 WHERE
-				 	trn_phone.delete_flg = #{constants.COM_FLG_OFF}
+				 	trn_phone.delete_flg = #{COM_FLG_OFF}
 			) tuser
 				ON phone.phone_id = tuser.phone_id
 			INNER JOIN mst_cucm_device_type device
@@ -836,9 +836,9 @@
 				ON phone.softkey_template_id = softkey.softkey_template_id
 			LEFT JOIN trn_officelink_fmc officelink
 				 ON line.fmc_id = officelink.fmc_id
-			  	AND officelink.delete_flg = #{constants.COM_FLG_OFF}
+			  	AND officelink.delete_flg = #{COM_FLG_OFF}
 			WHERE
-			  	phone.delete_flg = #{constants.COM_FLG_OFF}
+			  	phone.delete_flg = #{COM_FLG_OFF}
 
 			UNION ALL
 
@@ -930,13 +930,13 @@
 					ON trn_user.user_id = up.user_id
 				INNER JOIN trn_phone
 					 ON up.phone_id = trn_phone.phone_id
-				 	AND up.delete_flg = #{constants.COM_FLG_OFF}
+				 	AND up.delete_flg = #{COM_FLG_OFF}
 				INNER JOIN rel_user_section us
 					ON trn_user.user_id = us.user_id
 				INNER JOIN mst_section
 					ON us.section_id = mst_section.section_id
 				WHERE
-				 	trn_phone.delete_flg = #{constants.COM_FLG_OFF}
+				 	trn_phone.delete_flg = #{COM_FLG_OFF}
 			) v_user_donthave_phone
 		) v_tel_user_info
 		<!-- <where>
