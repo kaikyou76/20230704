@@ -178,7 +178,7 @@
 			, COALESCE(v_info.externalPhoneNumberMask,'') AS externalPhoneNumberMask		<!-- EXTERNAL_PHONE_NUMBER_MAS -->
 		FROM
 			(
-				<include refid="selectSearchUserAndList"/>
+				<include refid="selectSearchUserAndListOld"/>
 			) v_info
 	</select>
 
@@ -232,6 +232,199 @@
 
 	<!-- ユーザー一覧検索結果用 -->
 	<sql id="selectSearchUserAndList">
+		SELECT
+			  v_search_info.phoneId
+			, v_search_info.phoneClass
+			, v_search_info.phoneClassNm
+			, v_search_info.deviceTypeId
+			, v_search_info.deviceTypeNm
+			, v_search_info.maxAddonModuleNum
+			, v_search_info.macAddress
+			, v_search_info.callingSearchSpaceId
+			, v_search_info.callingSearchSpaceNm
+			, v_search_info.softkeyTemplateId
+			, v_search_info.softkeyTemplateNm
+			, v_search_info.phoneBranchId
+			, v_search_info.phoneBranchNm
+			, v_search_info.phoneSectionId
+			, v_search_info.phoneSectionNm
+			, v_search_info.phoneTemplateId
+			, v_search_info.phoneTemplateNm
+			, v_search_info.statusCd
+			, v_search_info.statusNm
+			, v_search_info.phoneRemarks
+			, v_search_info.addonModuleId1
+			, v_search_info.addonModuleNm1
+			, v_search_info.addonModuleId2
+			, v_search_info.addonModuleNm2
+			, v_search_info.addonModuleId3
+			, v_search_info.addonModuleNm3
+			, v_search_info.lineId
+			, v_search_info.no
+			, v_search_info.pickupGroupId
+			, v_search_info.pickupGroupNm
+			, v_search_info.voiceMailProfileId
+			, v_search_info.voiceMailProfileNm
+			, v_search_info.directoryNo
+			, v_search_info.allDestination
+			, v_search_info.busyDestination
+			, v_search_info.noansDestination
+			, v_search_info.voiceLogger
+			, v_search_info.voiceLoggerNm
+			, v_search_info.lineTxtLabel
+			, v_search_info.externalPhoneNoMask
+			, v_search_info.dialin
+			, v_search_info.ringSettingNm
+			, v_search_info.callingPartyTransformationMask
+			, v_search_info.gwRepletionSpecialNo
+			, v_search_info.lineRemarks
+			, v_search_info.representativePickup
+			, v_search_info.representativePickupNm
+			, v_search_info.chargeId
+			, v_search_info.chargeBranchCd
+			, v_search_info.chargeParentSectionCd
+			, v_search_info.chargeSectionCd
+			, v_search_info.chargeRemarks
+			, v_search_info.userId
+			, v_search_info.userNmKanji
+			, v_search_info.userSectionId
+			, v_search_info.userSectionNm
+			, v_search_info.enabledSharedUse
+			, v_search_info.fmcId
+			, v_search_info.fomaNo
+			, ROW_NUMBER() OVER (ORDER BY ( ${sort} ) ${order}) AS ROW_NUMBER
+			, CASE
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_DEFAULT}			<!-- 一般紐付け -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_MANY} <!-- 電話     1－N ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_COMMON_USER}		<!-- 共有ユーザー -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- 電話     1－1or0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- ユーザー 1or0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_MANY}   <!-- ライン   1－N 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_SHARED_LINE}		<!-- シェアードライン -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_MANY}   <!-- ユーザー 1－N 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_MULTI_DEVICE} 		<!-- マルチデバイス -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- 電話     1－1or0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- ユーザー 1or0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE}      <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_MANY}        <!-- 電話     1－N ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE}   <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_MULTI_LINE}			<!-- マルチライン -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_SHARE} <!-- 共用電話 1 -->
+				THEN #{constants.TEL_USAGES_SHARED_TEL}			<!-- 共用電話機 -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- ユーザー 0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_NOT_LINK_USER}		<!-- 部内在庫電話機 -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- ユーザー 0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- ライン   0－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+					AND v_search_info.phoneId IS NOT NULL
+				THEN #{constants.TEL_USAGES_NOT_LINK_USER_LINE}		<!-- 電話機単体 -->
+				WHEN
+					COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     0－0 ライン -->
+				THEN #{constants.TEL_USAGES_NOT_LINK_TEL}		<!-- 電話機と紐付いていないユーザ -->
+				ELSE #{constants.TEL_USAGES_MANY}				<!-- 複数存在した場合 -->
+			END AS telUsagesStatus <!-- ユーザー×電話×ラインのパターンステータス -->
+		FROM
+			(
+				<include refid="selectUserAndTelList"/>
+			) v_search_info
+			LEFT OUTER JOIN (
+				SELECT
+					phone_id,
+					CASE
+						WHEN count(phone_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
+						ELSE #{constants.TEL_USAGES_STATUS_MANY}
+					END AS status
+				FROM
+					rel_cucm_user_phone	<!-- ユーザー－電話 -->
+				WHERE
+					delete_flg = #{constants.COM_FLG_OFF}
+				GROUP BY
+					phone_id
+				) v_phone_user
+				ON v_search_info.phoneId = v_phone_user.phone_id
+			LEFT OUTER JOIN (
+				SELECT
+					line_id,
+					CASE
+						WHEN count(line_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
+						ELSE #{constants.TEL_USAGES_STATUS_MANY}
+					END AS status
+				FROM
+					rel_cucm_phone_line	<!-- ライン－電話 -->
+				WHERE
+					delete_flg = #{constants.COM_FLG_OFF}
+				GROUP BY
+					line_id
+				) v_line_tel
+				ON v_search_info.lineId = v_line_tel.line_id
+			LEFT OUTER JOIN (
+				SELECT
+					user_id,
+				CASE
+					WHEN count(user_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
+					ELSE #{constants.TEL_USAGES_STATUS_MANY}
+				END AS status
+				FROM
+					rel_cucm_user_phone	<!-- 電話－ユーザー -->
+				WHERE
+					delete_flg = #{constants.COM_FLG_OFF}
+				GROUP BY
+					user_id
+				) v_user_tel
+				ON v_search_info.userId = v_user_tel.user_id
+			LEFT OUTER JOIN (
+				SELECT
+					phone_id,
+					CASE
+						WHEN count(phone_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
+						ELSE #{constants.TEL_USAGES_STATUS_MANY}
+					END AS status
+				FROM
+					rel_cucm_phone_line	<!-- 電話－ライン -->
+				WHERE
+					delete_flg = #{constants.COM_FLG_OFF}
+				GROUP BY
+					phone_id
+				) v_tel_line
+				ON v_search_info.phoneId = v_tel_line.phone_id
+	</sql>
+
+
+	<!-- ユーザー一覧検索結果用 -->
+	<sql id="selectSearchUserAndListOld">
 		SELECT
 			v_search_info.lineId                    AS lineId					<!-- LINEID -->
 			, v_search_info.lineIndex               AS lineIndex				<!-- 連番（LINE） -->
