@@ -183,7 +183,7 @@
 	</select>
 
 	<!-- 一覧のエクスポート用の値を取得（CSV） -->
-	<select id="getUserAndTelCsvList" parameterType="UserAndTelSearchModel" resultType="java.util.LinkedHashMap">
+	<select id="getUserAndTelCsvList" parameterType="jp.co.ksc.batch.util.BaseConstants" resultType="Map">
 		SELECT
 			  CASE
 				WHEN COALESCE(statusCd, '1') = '1' THEN ''
@@ -531,7 +531,7 @@
 			END AS telUsagesStatus <!-- ユーザー×電話×ラインのパターンステータス -->
 		FROM
 			(
-				<include refid="selectUserAndTelList"/>
+				<include refid="selectUserAndTelListOld"/>
 			) v_search_info
 			LEFT OUTER JOIN (
 				SELECT

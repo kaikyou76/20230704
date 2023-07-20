@@ -67,7 +67,8 @@ public class LineListCSVExport implements ItemWriter<Object> {
 
             // データ取得
         	BaseConstants constants = new BaseConstants();
-            Map<String,Object>[] expVL = csvMapper.getLineListExp(constants);
+            //Map<String,Object>[] expVL = csvMapper.getLineListExp(constants);
+            Map<String,Object>[] expVL = csvMapper.getUserAndTelCsvList(constants);
 
             // 出力
             CSVUtil csv = new CSVUtil(expVL);
