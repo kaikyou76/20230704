@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Copyright 2010 The myBatis Team
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+
+		http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+-->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+<!-- ======================================== データソース定義 -->
+	<!--
+		 WTPを利用してTomcatを起動する場合、<ContextRoot>/META-INF/context.xmlに
+		 データソースの接続情報を設定する。
+		 またTomcatでJDBC接続を行う場合、各種JDBCドライバのjarにクラスパスを通すこと。
+	-->
+	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName">
+			<!-- Tomcatの例  -->
+			<value>java:comp/env/jdbc/irdb</value>
+			<!-- Tomcat以外のAPサーバの例 -->
+			<!--
+			<value>jdbc/irdb</value>
+			-->
+		</property>
+	</bean>
+
+	<!-- transaction manager, use JtaTransactionManager for global tx -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- define the SqlSessionFactory -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="jp.co.netmarks.model,jp.co.netmarks.model.entity,jp.co.ksc.model" />
+		<property name="configLocation" value="classpath:mybatis-config.xml"/>
+	</bean>
+
+	<!-- scan for mappers and let them be autowired -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="jp.co.netmarks.persistence,jp.co.ksc.persistence" />
+	</bean>
+
+</beans>
+

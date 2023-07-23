@@ -1,0 +1,28 @@
+局面			詳細設計						クライアント名／プロジェクト名							SMBC日興/IP電話EOL											頁		
+機能名			CUCMメンテナンスシステム																			作成日			2023/04/01		作成者		PISE 髙田
+資料名			TMP_統合ID_社員情報																			更新日					更新者		
+エンティティ一覧へ				ER図へ		CRUD図(オンライン)へ				CRUD図(バッチ)へ																			
+テーブル名称					TMP_統合ID_社員情報												データベース名						irdb				スキーマ名		public
+テーブルID					tmp_integratedid_employee												レコードサイズ										文字コード		Shift-JIS
+																													
+NO	Key	項目論理名						項目物理名									データ型		桁数	NULL	UNIQUE	初期値		増分	上限値	サイクル	備考		
+1	PK	社員ID						employee_id									INTEGER							1		〇	自動採番		
+2		組織コード						organization_cd									VARCHAR		19										
+3		会社コード						company_cd									VARCHAR		3		〇								
+4		店部課コード						department_cd									VARCHAR		5										
+5		店部課名						department_nm									VARCHAR		60										
+6		社員コード						employee_cd									VARCHAR		7		〇								
+7		社員氏名						employee_nm_kanji									VARCHAR		30										
+8		社員氏名カナ						employee_nm_kana									VARCHAR		60										
+9		役職コード						executive_post_cd									VARCHAR		3										
+10		職系コード						post_lineage_cd									VARCHAR		2	〇									
+11		クラス						class									VARCHAR		4	〇									
+12		性別コード						sex_cd									VARCHAR		1										
+13		生年月日						birthday									VARCHAR		8										
+14		メールアドレス						mail_address									VARCHAR		60	〇									
+15		所属順位						assign_grade									VARCHAR		2		〇								
+16		掲載区分						class_tel_addressbook									VARCHAR		1										
+17		出向区分						class_temporary_transfer									VARCHAR		1										
+18		メール作成フラグ						mail_address_automade_flg									VARCHAR		1										
+19		データ入力区分						class_data_input									VARCHAR		2										
+20		更新日時						update_date									TIMESTAMP												

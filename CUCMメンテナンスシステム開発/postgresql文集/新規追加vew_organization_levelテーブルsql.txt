@@ -1,0 +1,49 @@
+	CREATE VIEW vew_organization_level AS									
+	SELECT 									
+		mst_branch.branch_id,								
+		mst_branch.branch_cd,								
+		mst_branch.branch_nm,								
+		vew_section_level.parent_section_id,								
+		vew_section_level.parent_company_cd,								
+		vew_section_level.parent_section_cd,								
+		vew_section_level.parent_section_nm,								
+		vew_section_level.parent_print_order,								
+		vew_section_level.child_section_id,								
+		vew_section_level.child_company_cd,								
+		vew_section_level.child_section_cd,								
+		vew_section_level.child_section_nm,								
+		vew_section_level.child_print_order								
+	FROM ((mst_branch									
+			JOIN rel_branch_section							
+				ON (((mst_branch.branch_id)::TEXT = (rel_branch_section.branch_id)::TEXT))) 						
+			JOIN vew_section_level 							
+				ON (((((rel_branch_section.section_id)::TEXT = (vew_section_level.parent_section_id)::TEXT)						
+					AND (NOT ((vew_section_level.child_section_id)::TEXT IN (					
+						SELECT vew_section_level.child_section_id::TEXT				
+						FROM (vew_section_level 				
+							JOIN rel_branch_section			
+								ON (((((vew_section_level.child_section_id)::TEXT = (rel_branch_section.section_id)::TEXT) 		
+								AND ((vew_section_level.parent_section_id)::TEXT <> (vew_section_level.child_section_id)::TEXT)		
+		)))))))))))								
+	UNION									
+	SELECT 									
+		mst_branch.branch_id,								
+		mst_branch.branch_cd,								
+		mst_branch.branch_nm,								
+		vew_section_level.child_section_id as parent_section_id,								
+		vew_section_level.child_company_cd as parent_company_cd,								
+		vew_section_level.child_section_cd as parent_section_cd,								
+		vew_section_level.child_section_nm as parent_section_nm,								
+		vew_section_level.child_print_order as parent_print_order,								
+		vew_section_level.child_section_id,								
+		vew_section_level.child_company_cd,								
+		vew_section_level.child_section_cd,								
+		vew_section_level.child_section_nm,								
+		vew_section_level.child_print_order								
+	FROM ((rel_branch_section									
+			JOIN vew_section_level 							
+				ON (((((rel_branch_section.section_id)::TEXT = (vew_section_level.child_section_id) ::TEXT)						
+				AND ((rel_branch_section.section_id) ::TEXT <> (vew_section_level.parent_section_id) ::TEXT))))						
+			JOIN mst_branch 							
+				ON (((rel_branch_section.branch_id)::TEXT = (mst_branch.branch_id)::TEXT))))						
+	ORDER BY 1, 5, 12, 11;									

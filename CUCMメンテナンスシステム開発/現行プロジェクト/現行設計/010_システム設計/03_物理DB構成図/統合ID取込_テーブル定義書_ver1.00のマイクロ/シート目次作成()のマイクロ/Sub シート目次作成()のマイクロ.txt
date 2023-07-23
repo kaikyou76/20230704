@@ -1,0 +1,53 @@
+Sub シート目次作成()
+'ワークシートが多くなりすぎて、移動に不便になったとき、目次シートを冒頭に作ります
+'ワークシート名のセルが、そのワークシートにリンクしています
+    Const LINKS_SHEET = "目次" '新たに作るワークシート名です
+    Const LIST_ROWS = 999 '999行で改行します
+    
+    Dim n%, m%, st_count%, rw%, clmn%, sheet_name$, is_mokuji%
+    Dim targetcell As Range
+    Dim targetsheet As Worksheet
+    
+    is_mokuji = 0
+    For Each targetsheet In Worksheets
+        If targetsheet.Name = LINKS_SHEET Then
+            targetsheet.Activate 'すでに同じシート名があれば書き換えます
+            is_mokuji = 1
+            Exit For
+        End If
+    Next targetsheet
+    
+    If is_mokuji = 0 Then 'なければ「目次」シートを新たに作ります
+        Worksheets.Add before:=Worksheets(1)
+        Worksheets(1).Name = LINKS_SHEET
+    End If
+    
+    '列初期化
+    Range("B2:B999").Select
+    Selection.ClearContents
+
+    With ActiveSheet '「目次」シート
+
+        For n = 0 To ThisWorkbook.Worksheets.Count - 2
+            rw = n Mod LIST_ROWS + 2
+            clmn = n \ LIST_ROWS + 2
+            Set targetsheet = ThisWorkbook.Worksheets(n + 2)
+            Set targetcell = .Cells(rw, clmn)
+            sheet_name = targetsheet.Name
+            targetcell.FormulaR1C1 = sheet_name
+            sheet_name = "'" & sheet_name & "'" '「'」を付けることで、シート名に（　があったりするとエラーになるのを防ぎます
+            sheet_name = sheet_name & "!A1"
+            
+            .Hyperlinks.Add Anchor:=targetcell, Address:="", SubAddress:=sheet_name
+        Next n
+        
+        Range("B2:B999").Select
+        With Selection.Font
+            .Name = "ＭＳ 明朝"
+        End With
+
+        Cells.EntireColumn.AutoFit
+        Range("A1").Select
+    End With
+    
+End Sub

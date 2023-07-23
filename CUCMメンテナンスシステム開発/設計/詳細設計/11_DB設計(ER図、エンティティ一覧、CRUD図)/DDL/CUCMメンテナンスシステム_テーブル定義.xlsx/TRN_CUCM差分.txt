@@ -1,0 +1,49 @@
+局面			詳細設計						クライアント名／プロジェクト名							SMBC日興/IP電話EOL											頁		
+機能名			CUCMメンテナンスシステム																			作成日			2023/04/19		作成者		PISE 木村
+資料名			TRN_CUCM差分																			更新日					更新者		
+エンティティ一覧へ				ER図へ		CRUD図(オンライン)へ				CRUD図(バッチ)へ																			
+テーブル名称					TRN_CUCM差分												データベース名						irdb				スキーマ名		public
+テーブルID					trn_diff_cucm												レコードサイズ										文字コード		Shift-JIS
+																													
+NO	Key	項目論理名						項目物理名									データ型		桁数	NULL	UNIQUE	初期値		増分	上限値	サイクル	備考		
+1	PK	CUCM差分ID						diff_cucm_id									INTEGER							1		〇	自動採番		
+2		MACアドレス（CUCM）						cucm_mac_address									VARCHAR		13	〇									
+3		内線番号（CUCM）						cucm_directory_no									VARCHAR		8	〇									
+4		コーリングサーチスペース名（CUCM）						cucm_calling_search_space_nm									VARCHAR		100	〇									
+5		ロケーション名（CUCM）						cucm_location_nm									VARCHAR		8	〇									
+6		デバイスプール名（CUCM）						cucm_device_pool_nm									VARCHAR		100	〇									
+7		ボタンテンプレート名（CUCM）						cucm_phone_button_template_nm									VARCHAR		100	〇									
+8		拡張モジュール１（CUCM）						cucm_addon_module_nm_1									VARCHAR		100	〇									
+9		拡張モジュール２（CUCM）						cucm_addon_module_nm_2									VARCHAR		100	〇									
+10		全転送CSS（CUCM）						cucm_fwd_all_css									VARCHAR		100	〇									
+11		話中転送先（CUCM）						cucm_fwd_busy_css									VARCHAR		100	〇									
+12		話中転送先CSS（CUCM）						cucm_fwd_busy_destination									VARCHAR		100	〇									
+13		不応答転送先（CUCM）						cucm_fwd_noans_css									VARCHAR		100	〇									
+14		不応答転送先CSS（CUCM）						cucm_fwd_noans_destination									VARCHAR		100	〇									
+15		ピックアップグループ名（CUCM）						cucm_call_pickup_group_nm									VARCHAR		100	〇									
+16		ボイスメールプロファイル名（CUCM）						cucm_voice_mail_profile_nm									VARCHAR		100	〇									
+17		連番（CUCM）						cucm_no									INTEGER			〇									
+18		外線通知番号（CUCM）						cucm_external_phone_no_mask									VARCHAR		100	〇									
+19		テキストラベル（CUCM）						cucm_line_txt_label									VARCHAR		10	〇									
+20		鳴動設定名（CUCM）						cucm_ring_setting_nm									VARCHAR		18	〇									
+21		MACアドレス（メンテナンスシステム）						app_mac_address									VARCHAR		13	〇									
+22		内線番号（メンテナンスシステム）						app_directory_no									VARCHAR		8	〇									
+23		コーリングサーチスペース名（メンテナンスシステム）						app_calling_search_space_nm									VARCHAR		100	〇									
+24		ロケーション名（メンテナンスシステム）						app_location_nm									VARCHAR		8	〇									
+25		デバイスプール名（メンテナンスシステム）						app_device_pool_nm									VARCHAR		100	〇									
+26		ボタンテンプレート名（メンテナンスシステム）						app_phone_button_template_nm									VARCHAR		100	〇									
+27		拡張モジュール１（メンテナンスシステム）						app_addon_module_nm_1									VARCHAR		100	〇									
+28		拡張モジュール２（メンテナンスシステム）						app_addon_module_nm_2									VARCHAR		100	〇									
+29		全転送CSS（メンテナンスシステム）						app_fwd_all_css									VARCHAR		100	〇									
+30		話中転送先（メンテナンスシステム）						app_fwd_busy_css									VARCHAR		100	〇									
+31		話中転送先CSS（メンテナンスシステム）						app_fwd_busy_destination									VARCHAR		100	〇									
+32		不応答転送先（メンテナンスシステム）						app_fwd_noans_css									VARCHAR		100	〇									
+33		不応答転送先CSS（メンテナンスシステム）						app_fwd_noans_destination									VARCHAR		100	〇									
+34		ピックアップグループ名（メンテナンスシステム）						app_call_pickup_group_nm									VARCHAR		100	〇									
+35		ボイスメールプロファイル名（メンテナンスシステム）						app_voice_mail_profile_nm									VARCHAR		100	〇									
+36		連番（メンテナンスシステム）						app_no									INTEGER			〇									
+37		外線通知番号（メンテナンスシステム）						app_external_phone_no_mask									VARCHAR		100	〇									
+38		テキストラベル（メンテナンスシステム）						app_line_txt_label									VARCHAR		10	〇									
+39		鳴動設定名（メンテナンスシステム）						app_ring_setting_nm									VARCHAR		18	〇									
+40		作成日時						create_date									TIMESTAMP					現在日時							
+41		更新日時						update_date									TIMESTAMP					現在日時							

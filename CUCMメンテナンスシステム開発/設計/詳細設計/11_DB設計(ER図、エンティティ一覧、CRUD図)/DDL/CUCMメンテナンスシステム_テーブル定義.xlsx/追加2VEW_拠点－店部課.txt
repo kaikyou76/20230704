@@ -1,0 +1,83 @@
+局面			詳細設計						クライアント名／プロジェクト名							SMBC日興/IP電話EOL										頁		
+機能名			CUCMメンテナンスシステム																		作成日			2023/04/01		作成者		PISE 髙田
+資料名			VEW_拠点－店部課																		更新日					更新者		
+エンティティ一覧へ				ER図へ		CRUD図(オンライン)へ				CRUD図(バッチ)へ																		
+ビュー名称					VEW_拠点－店部課												データベース名					irdb				スキーマ名		public
+ビューID					vew_organization_level												レコードサイズ									文字コード		Shift-JIS
+																												
+NO	ベーステーブル名							ベーステーブルID									備考											
+1	MST_拠点							mst_branch																				
+2	REL_拠点-店部課							rel_branch_section																				
+3	VEW_店部課階層							vew_section_level																				
+																												
+NO	項目論理名							項目物理名									取得方法											
+1	拠点ID							branch_id									MST_拠点.拠点ID											
+2	拠点CD							branch_cd									MST_拠点.拠点CD											
+3	拠点名							branch_nm									MST_拠点.拠点名											
+4	親店部課ID							parent_section_id									VEW_店部課階層.親店部課ID											
+5	親会社CD							parent_company_cd									VEW_店部課階層.親会社CD											
+6	親店部課CD							parent_section_cd									VEW_店部課階層.親店部課CD											
+7	親店部課名							parent_section_nm									VEW_店部課階層.親店部課名											
+8	親店部課プリント順							parent_print_order									VEW_店部課階層.親店部課プリント順											
+9	子店部課ID							child_section_id									VEW_店部課階層.子店部課ID											
+10	部署CD							child_company_cd									VEW_店部課階層.部署CD											
+11	子店部課CD							child_section_cd									VEW_店部課階層.子店部課CD											
+12	子店部課名							child_section_nm									VEW_店部課階層.子店部課名											
+13	子プリント順							child_print_order									VEW_店部課階層.子プリント順											
+																												
+備考																												
+																												
+																												
+																												
+																												
+DDL																												
+																												
+	CREATE VIEW vew_organization_level AS																											
+	SELECT 																											
+		mst_branch.branch_id,																										
+		mst_branch.branch_cd,																										
+		mst_branch.branch_nm,																										
+		vew_section_level.parent_section_id,																										
+		vew_section_level.parent_company_cd,																										
+		vew_section_level.parent_section_cd,																										
+		vew_section_level.parent_section_nm,																										
+		vew_section_level.parent_print_order,																										
+		vew_section_level.child_section_id,																										
+		vew_section_level.child_company_cd,																										
+		vew_section_level.child_section_cd,																										
+		vew_section_level.child_section_nm,																										
+		vew_section_level.child_print_order																										
+	FROM ((mst_branch																											
+			JOIN rel_branch_section																									
+				ON (((mst_branch.branch_id)::TEXT = (rel_branch_section.branch_id)::TEXT))) 																								
+			JOIN vew_section_level 																									
+				ON (((((rel_branch_section.section_id)::TEXT = (vew_section_level.parent_section_id)::TEXT)																								
+					AND (NOT ((vew_section_level.child_section_id)::TEXT IN (																							
+						SELECT vew_section_level.child_section_id::TEXT																						
+						FROM (vew_section_level 																						
+							JOIN rel_branch_section																					
+								ON (((((vew_section_level.child_section_id)::TEXT = (rel_branch_section.section_id)::TEXT) 																				
+								AND ((vew_section_level.parent_section_id)::TEXT <> (vew_section_level.child_section_id)::TEXT)																				
+		)))))))))))																										
+	UNION																											
+	SELECT 																											
+		mst_branch.branch_id,																										
+		mst_branch.branch_cd,																										
+		mst_branch.branch_nm,																										
+		vew_section_level.child_section_id as parent_section_id,																										
+		vew_section_level.child_company_cd as parent_company_cd,																										
+		vew_section_level.child_section_cd as parent_section_cd,																										
+		vew_section_level.child_section_nm as parent_section_nm,																										
+		vew_section_level.child_print_order as parent_print_order,																										
+		vew_section_level.child_section_id,																										
+		vew_section_level.child_company_cd,																										
+		vew_section_level.child_section_cd,																										
+		vew_section_level.child_section_nm,																										
+		vew_section_level.child_print_order																										
+	FROM ((rel_branch_section																											
+			JOIN vew_section_level 																									
+				ON (((((rel_branch_section.section_id)::TEXT = (vew_section_level.child_section_id) ::TEXT)																								
+				AND ((rel_branch_section.section_id) ::TEXT <> (vew_section_level.parent_section_id) ::TEXT))))																								
+			JOIN mst_branch 																									
+				ON (((rel_branch_section.branch_id)::TEXT = (mst_branch.branch_id)::TEXT))))																								
+	ORDER BY 1, 5, 12, 11;																											

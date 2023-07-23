@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.ksc.persistence.CommonMapper">
+
+	<select id="locked" parameterType="Map" resultType="Boolean">
+		SELECT
+			1
+		FROM
+			${tableName}
+		WHERE
+			<foreach item="item" collection="primaryKeys" separator="AND">
+				${item.key} = #{item.value}
+			</foreach>
+			<if test="lstupdtTmstmp != null and lstupdtTmstmp != '' ">
+				AND LSTUPDT_TMSTMP = #{lstupdtTmstmp}
+			</if>
+		FOR UPDATE
+	</select>
+
+	<!-- シーケンス取得 -->
+	<select id="sequence" parameterType="String"  resultType="String">
+		SELECT NEXTVAL(#{sequenceName})
+	</select>
+
+	<!--
+		<select id="getTimestamp" resultType="TIMESTAMP">
+			SELECT
+				TO_CHAR(SYSTIMESTAMP, 'YYYY/MM/DD HH24:MI:SS.FF3') value,
+				'YYYY/MM/DD HH24:MI:SS.FF3' format,
+				'yyyy/MM/dd HH:mm:ss.SSS' pattern
+			FROM
+				DUAL
+		</select>
+	 -->
+
+</mapper>
+

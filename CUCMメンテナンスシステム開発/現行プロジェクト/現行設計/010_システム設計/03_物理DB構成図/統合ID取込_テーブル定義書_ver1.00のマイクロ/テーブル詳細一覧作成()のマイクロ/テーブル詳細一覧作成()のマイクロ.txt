@@ -1,0 +1,163 @@
+Sub テーブル詳細一覧作成()
+
+'*******************************************************************************
+'* マクロ概要:各テーブル定義書の詳細情報を一覧で表示する
+'*
+'* 引　　数:なし
+'*
+'* 戻　　値:なし
+'*
+'* 作成日　:2011/01/17
+'*
+'* 作成者　:KSC 遠藤
+'*
+'* 更新日　:2011/02/08
+'*
+'*******************************************************************************
+
+    ''各列幅を設定
+    Call Columns_width
+
+    'ワークシート名のセルが、そのワークシートにリンクしています
+    Const LINKS_SHEET = "テーブル一覧詳細" '新たに作るワークシート名です
+    Const LIST_ROWS = 999 '999行で改行します
+
+    Dim n%, m%, st_count%, rw%, clmn%, sheet_name$, created%, no%
+    Dim targetsheet     As Worksheet       'データ取得先シート
+    Dim targetcell      As Range           'セル位置
+    
+    created = 0
+    For Each targetsheet In Worksheets
+        If targetsheet.Name = LINKS_SHEET Then
+            targetsheet.Activate 'すでに同じシート名があれば書き換えます
+            created = 1
+            Exit For
+        End If
+    Next targetsheet
+    
+    If created = 0 Then 'なければ「テーブル一覧詳細」シートを新たに作ります
+        Worksheets.Add before:=Worksheets(3)
+        Worksheets(3).Name = LINKS_SHEET
+    End If
+    
+    '列初期化
+    Range("C6:C999").Select
+    Selection.ClearContents
+
+    With ActiveSheet '「テーブル一覧詳細」シート更新
+
+        For n = 0 To ThisWorkbook.Worksheets.Count - 7
+           
+            'テーブル名称
+            rw = n Mod LIST_ROWS + 6
+            clmn = n \ LIST_ROWS + 3
+            Set targetsheet = ThisWorkbook.Worksheets(n + 7)
+            Set targetcell = .Cells(rw, clmn)
+            sheet_name = targetsheet.Name
+            targetcell.FormulaR1C1 = sheet_name
+            sheet_name = "'" & sheet_name & "'" '「'」を付けることで、シート名に（　があったりするとエラーになるのを防ぎます
+            sheet_name = sheet_name & "!A1"
+            
+            .Hyperlinks.Add Anchor:=targetcell, Address:="", SubAddress:=sheet_name
+            
+            'NO
+            no = 1
+            Set targetcell = .Cells(rw, clmn - 2)
+            targetcell.Formula = "=" & rw & "- 5"
+            
+            'テーブルID
+            Set targetcell = .Cells(rw, clmn - 1)
+            targetcell.Formula = "=INDIRECT(C" & rw & "&""!$F$2"",1)"
+            
+            'データベース名
+            Set targetcell = .Cells(rw, clmn + 1)
+            targetcell.Formula = "=INDIRECT(C" & rw & "&""!$W$1"",1)"
+            
+            'ファイルグループ名
+            Set targetcell = .Cells(rw, clmn + 2)
+            targetcell.Formula = "=INDIRECT(C" & rw & "&""!$W$2"",1)"
+            
+            'スキーマ名
+            Set targetcell = .Cells(rw, clmn + 3)
+            targetcell.Formula = "=INDIRECT(C" & rw & "&""!$AC$1"",1)"
+            
+            '総件数
+            Set targetcell = .Cells(rw, clmn + 4)
+            targetcell.Formula = "=INDIRECT(C" & rw & "&""!$AF$2"",1)"
+            
+            '平均行長(行サイズ)
+            Set targetcell = .Cells(rw, clmn + 5)
+            targetcell.Formula = "=INDIRECT(C" & rw & "&""!$W$5"",1)"
+            
+            'INDEX容量
+            Set targetcell = .Cells(rw, clmn + 6)
+            targetcell.Formula = "=INDIRECT(C" & rw & "&""!$AC$5"",1)"
+            
+            'TBL(データ)容量
+            Set targetcell = .Cells(rw, clmn + 7)
+            targetcell.Formula = "=INDIRECT(C" & rw & "&""!$AC$4"",1)"
+            
+            '総容量
+            Set targetcell = .Cells(rw, clmn + 8)
+            targetcell.Formula = "=INDIRECT(C" & rw & "&""!$AC$2"",1)"
+        Next n
+        
+        'メガバイト単位の出力
+        'INDEX容量の合計値
+        Set targetcell = .Cells(rw + 1, clmn + 6)
+        targetcell.Formula = "=ROUNDUP(SUM($I6:$I" & rw & "),3)&""M"" "
+        
+        'TBL容量の合計値
+        Set targetcell = .Cells(rw + 1, clmn + 7)
+        targetcell.Formula = "=ROUNDUP(SUM($J6:$J" & rw & "),3)&""M"" "
+        
+        '総容量の合計値
+        Set targetcell = .Cells(rw + 1, clmn + 8)
+        targetcell.Formula = "=ROUNDUP(SUM($I6:$J" & rw & "),3)&""M"" "
+        
+        'ギガバイト単位の出力
+        'INDEX容量の合計値
+        Set targetcell = .Cells(rw + 2, clmn + 6)
+        targetcell.Formula = "=ROUNDUP(SUM($I6:$I" & rw & ")/1024,3)&""G"" "
+        
+        'TBL容量の合計値
+        Set targetcell = .Cells(rw + 2, clmn + 7)
+       targetcell.Formula = "=ROUNDUP(SUM($J6:$J" & rw & ")/1024,3)&""G"" "
+        
+        '総容量の合計値
+        Set targetcell = .Cells(rw + 2, clmn + 8)
+        targetcell.Formula = "=ROUNDUP(SUM($I6:$J" & rw & ")/1024,3)&""G"" "
+        
+        
+        
+        '「テーブル名称」のフォントをＭＳ明朝に設定
+        Range("C6:C999").Select
+        With Selection.Font
+            .Name = "ＭＳ 明朝"
+        End With
+
+
+        '罫線を引く
+        With Range("A6:K" & rw).Borders
+        .Color = vbBlack
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+        End With
+
+        
+    End With
+
+End Sub
+
+
+        '各列幅を設定するメソッド
+Sub Columns_width()
+
+       Columns("A:B").ColumnWidth = 4.38
+       Columns("B:C").ColumnWidth = 21.88
+       Columns("C:D").ColumnWidth = 29.25
+       Columns("D:E").ColumnWidth = 13.63
+       Columns("E:H").ColumnWidth = 10
+       Columns("H:L").ColumnWidth = 9.25
+        
+End Sub

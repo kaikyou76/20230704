@@ -1,0 +1,852 @@
+CREATE TABLE mst_branch (
+branch_id  SERIAL, 
+branch_cd varchar(5) NOT NULL, 
+branch_nm varchar(40) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (branch_id),
+ UNIQUE (branch_cd)
+);
+
+CREATE TABLE mst_cucm_calling_search_space (
+calling_search_space_id  SERIAL, 
+calling_search_space_nm varchar(100) NOT NULL, 
+cd1 varchar(3) NOT NULL, 
+cd2 varchar(5) NOT NULL, 
+cd3 varchar(5) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (calling_search_space_id),
+ UNIQUE (calling_search_space_nm)
+);
+
+CREATE TABLE mst_cucm_device_pool (
+device_pool_id  SERIAL, 
+device_pool_nm varchar(100) NOT NULL, 
+cisco_unified_callmanager_group varchar(36) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (device_pool_id),
+ UNIQUE (device_pool_nm)
+);
+
+CREATE TABLE mst_cucm_device_type (
+device_type_id  SERIAL, 
+device_type_nm varchar(100) NOT NULL, 
+device_type_no integer, 
+device_protocol varchar(4), 
+rel_device_type_no integer, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (device_type_id),
+ UNIQUE (device_type_nm, rel_device_type_no)
+);
+
+CREATE TABLE mst_cucm_location (
+location_id  SERIAL, 
+location_nm varchar(8) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (location_id),
+ UNIQUE (location_nm)
+);
+
+CREATE TABLE mst_cucm_phone_template (
+phone_template_id  SERIAL, 
+phone_template_nm varchar(100) NOT NULL, 
+device_type_id integer NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (phone_template_id),
+ UNIQUE (phone_template_nm)
+);
+
+CREATE TABLE mst_cucm_pickup_group (
+pickup_group_id  SERIAL, 
+pickup_group_nm varchar(19) NOT NULL, 
+pickup_group_no integer NOT NULL, 
+branch_cd varchar(3) NOT NULL, 
+section_cd varchar(5) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (pickup_group_id),
+ UNIQUE (pickup_group_nm)
+);
+
+CREATE TABLE mst_cucm_voice_mail_profile (
+voice_mail_profile_id  SERIAL, 
+voice_mail_profile_nm varchar(100) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (voice_mail_profile_id),
+ UNIQUE (voice_mail_profile_nm)
+);
+
+CREATE TABLE mst_section (
+section_id  SERIAL, 
+company_cd varchar(3) NOT NULL, 
+section_cd varchar(5) NOT NULL, 
+section_nm varchar(60) NOT NULL, 
+parent_section_cd varchar(5) NOT NULL, 
+organization_cd varchar(19) NOT NULL, 
+print_order varchar(4) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (section_id),
+ UNIQUE (company_cd, section_cd)
+);
+
+CREATE TABLE mst_shared_nm (
+shared_id  SERIAL, 
+shared_nm varchar(40) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (shared_id),
+ UNIQUE (shared_nm)
+);
+
+CREATE TABLE mst_cucm_softkey_template (
+softkey_template_id  SERIAL, 
+softkey_template_nm varchar(100) NOT NULL, 
+device_type_no integer NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (softkey_template_id),
+ UNIQUE (softkey_template_nm)
+);
+
+CREATE TABLE rel_branch_section (
+branch_id integer NOT NULL, 
+section_id integer NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (branch_id,section_id)
+);
+
+CREATE TABLE rel_cucm_phone_line (
+phone_id integer NOT NULL, 
+line_id integer NOT NULL, 
+no integer NOT NULL, 
+line_txt_label varchar(10), 
+external_phone_no_mask varchar(100), 
+ring_setting_nm varchar(18), 
+dialin varchar(24), 
+remarks text, 
+delete_flg varchar(1) DEFAULT 0 NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (phone_id,line_id,no)
+);
+
+CREATE TABLE rel_cucm_user_phone (
+user_id integer NOT NULL, 
+phone_id integer NOT NULL, 
+delete_flg varchar(1) DEFAULT 0 NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (user_id,phone_id)
+);
+
+CREATE TABLE rel_user_section (
+user_id integer NOT NULL, 
+section_id integer NOT NULL, 
+delete_reserve varchar(1) DEFAULT 0 NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (user_id,section_id)
+);
+
+CREATE TABLE tmp_ad (
+ad_id  SERIAL, 
+login_nm varchar(7) NOT NULL, 
+disp_nm varchar(128), 
+last_nm varchar(128) NOT NULL, 
+first_nm varchar(128) NOT NULL, 
+mail varchar(256), 
+position varchar(512) NOT NULL, 
+ PRIMARY KEY (ad_id),
+ UNIQUE (login_nm)
+);
+
+CREATE TABLE tmp_department (
+department_id  SERIAL, 
+company_cd varchar(3) NOT NULL, 
+department_cd varchar(5) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (department_id),
+ UNIQUE (company_cd, department_cd)
+);
+
+CREATE TABLE tmp_employee (
+employee_id  SERIAL, 
+company_cd varchar(3) NOT NULL, 
+employee_cd varchar(7) NOT NULL, 
+assign_grade varchar(2) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (employee_id),
+ UNIQUE (company_cd, employee_cd, assign_grade)
+);
+
+CREATE TABLE tmp_executive (
+executive_post_id  SERIAL, 
+executive_post_cd varchar(3) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (executive_post_id),
+ UNIQUE (executive_post_cd)
+);
+
+CREATE TABLE tmp_integratedid_department (
+department_id  SERIAL, 
+organization_cd varchar(19) NOT NULL, 
+company_cd varchar(3) NOT NULL, 
+company_nm varchar(60) NOT NULL, 
+control_cd varchar(5) NOT NULL, 
+control_nm varchar(60) NOT NULL, 
+charge_cd varchar(5) NOT NULL, 
+charge_nm varchar(60) NOT NULL, 
+parent_department_cd varchar(5) NOT NULL, 
+parent_department_nm varchar(60) NOT NULL, 
+department_cd varchar(5) NOT NULL, 
+department_nm varchar(60) NOT NULL, 
+department_nm_en varchar(80), 
+zip_cd varchar(7), 
+address varchar(100), 
+telephone_no varchar(15), 
+fax_no varchar(15), 
+extension_no varchar(15), 
+class_sales varchar(2) NOT NULL, 
+class_data_input varchar(2) NOT NULL, 
+update_date timestamp NOT NULL, 
+ PRIMARY KEY (department_id),
+ UNIQUE (company_cd, department_cd)
+);
+
+CREATE TABLE tmp_integratedid_employee (
+employee_id  SERIAL, 
+organization_cd varchar(19) NOT NULL, 
+company_cd varchar(3) NOT NULL, 
+department_cd varchar(5) NOT NULL, 
+department_nm varchar(60) NOT NULL, 
+employee_cd varchar(7) NOT NULL, 
+employee_nm_kanji varchar(30) NOT NULL, 
+employee_nm_kana varchar(60) NOT NULL, 
+executive_post_cd varchar(3) NOT NULL, 
+post_lineage_cd varchar(2), 
+class varchar(4), 
+sex_cd varchar(1) NOT NULL, 
+birthday varchar(8) NOT NULL, 
+mail_address varchar(60), 
+assign_grade varchar(2) NOT NULL, 
+class_tel_addressbook varchar(1) NOT NULL, 
+class_temporary_transfer varchar(1) NOT NULL, 
+mail_address_automade_flg varchar(1) NOT NULL, 
+class_data_input varchar(2) NOT NULL, 
+update_date timestamp NOT NULL, 
+ PRIMARY KEY (employee_id),
+ UNIQUE (company_cd, employee_cd, assign_grade)
+);
+
+CREATE TABLE tmp_integratedid_organization (
+organization_id  SERIAL, 
+organization_cd varchar(19) NOT NULL, 
+organization_nm varchar(60) NOT NULL, 
+organization_no varchar(7) NOT NULL, 
+organization_abbreviated_nm varchar(15) NOT NULL, 
+print_order varchar(4) NOT NULL, 
+class_sales varchar(2) NOT NULL, 
+class_data_input varchar(2) NOT NULL, 
+update_date timestamp NOT NULL, 
+ PRIMARY KEY (organization_id),
+ UNIQUE (organization_cd)
+);
+
+CREATE TABLE tmp_organization (
+organization_id  SERIAL, 
+organization_cd varchar(19) NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (organization_id),
+ UNIQUE (organization_cd)
+);
+
+CREATE TABLE trn_charge_association (
+charge_id  SERIAL, 
+branch_id integer NOT NULL, 
+section_id integer NOT NULL, 
+remarks text, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (charge_id)
+);
+
+CREATE TABLE trn_cuc_association (
+cuc_id  SERIAL, 
+phone_id integer NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (cuc_id,phone_id)
+);
+
+CREATE TABLE trn_diff_cucm (
+diff_cucm_id  SERIAL, 
+cucm_mac_address varchar(13), 
+cucm_directory_no varchar(8), 
+cucm_calling_search_space_nm varchar(100), 
+cucm_location_nm varchar(8), 
+cucm_device_pool_nm varchar(100), 
+cucm_phone_button_template_nm varchar(100), 
+cucm_addon_module_nm_1 varchar(100), 
+cucm_addon_module_nm_2 varchar(100), 
+cucm_addon_module_nm_3 varchar(100), 
+cucm_fwd_all_css varchar(100), 
+cucm_fwd_busy_css varchar(100), 
+cucm_fwd_busy_destination varchar(100), 
+cucm_fwd_noans_css varchar(100), 
+cucm_fwd_noans_destination varchar(100), 
+cucm_call_pickup_group_nm varchar(100), 
+cucm_voice_mail_profile_nm varchar(100), 
+cucm_no integer, 
+cucm_external_phone_no_mask varchar(100), 
+cucm_line_txt_label varchar(10), 
+cucm_ring_setting_nm varchar(18), 
+app_mac_address varchar(13), 
+app_directory_no varchar(8), 
+app_calling_search_space_nm varchar(100), 
+app_location_nm varchar(8), 
+app_device_pool_nm varchar(100), 
+app_phone_button_template_nm varchar(100), 
+app_addon_module_nm_1 varchar(100), 
+app_addon_module_nm_2 varchar(100), 
+app_addon_module_nm_3 varchar(100), 
+app_fwd_all_css varchar(100), 
+app_fwd_busy_css varchar(100), 
+app_fwd_busy_destination varchar(100), 
+app_fwd_noans_css varchar(100), 
+app_fwd_noans_destination varchar(100), 
+app_call_pickup_group_nm varchar(100), 
+app_voice_mail_profile_nm varchar(100), 
+app_no integer, 
+app_external_phone_no_mask varchar(100), 
+app_line_txt_label varchar(10), 
+app_ring_setting_nm varchar(18), 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (diff_cucm_id)
+);
+
+CREATE TABLE trn_diff_officelink (
+diff_officelink_id  SERIAL, 
+office_link_directory_no varchar(8), 
+office_link_foma_no varchar(11), 
+office_link_sip_id varchar(8), 
+office_link_sip_pw varchar(8), 
+office_link_web_cuscom_user_nm varchar(8), 
+office_link_web_cuscom_pw text, 
+app_directory_no varchar(8), 
+app_foma_no varchar(11), 
+app_sip_id varchar(8), 
+app_sip_pw varchar(8), 
+app_web_cuscom_user_nm varchar(8), 
+app_web_cuscom_pw text, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (diff_officelink_id)
+);
+
+CREATE TABLE trn_line (
+line_id  SERIAL, 
+fmc_id integer, 
+charge_id integer NOT NULL, 
+voice_mail_profile_id integer, 
+pickup_group_id integer, 
+directory_no varchar(8) NOT NULL, 
+fwd_all_destination varchar(100), 
+fwd_all_css integer, 
+fwd_busy_destination varchar(100), 
+fwd_busy_css integer, 
+fwd_noans_destination varchar(100), 
+fwd_noans_css integer, 
+fwd_noans_ring_duration integer NOT NULL, 
+maximum_no_of_calls integer NOT NULL, 
+busy_trigger integer NOT NULL, 
+calling_party_transformation_mask varchar(10), 
+gw_repletion_special_no varchar(3), 
+voice_logger varchar(1), 
+representative_pickup integer DEFAULT 0 NOT NULL, 
+update_status varchar(1) DEFAULT 0 NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (line_id),
+ UNIQUE (directory_no)
+);
+
+CREATE TABLE trn_officelink_fmc (
+fmc_id  SERIAL, 
+directory_no varchar(8) NOT NULL, 
+foma_no varchar(11) NOT NULL, 
+sip_id varchar(8), 
+sip_pw varchar(8), 
+web_cuscom_user_nm varchar(8) NOT NULL, 
+web_cuscom_pw text NOT NULL, 
+update_status varchar(1) DEFAULT 0 NOT NULL, 
+delete_flg varchar(1) DEFAULT 0 NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (fmc_id),
+ UNIQUE (directory_no, foma_no)
+);
+
+CREATE TABLE trn_password_change_tracking (
+tracking_id  SERIAL, 
+user_id integer NOT NULL, 
+no integer NOT NULL, 
+before_pw text NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (tracking_id,user_id,no)
+);
+
+CREATE TABLE trn_phone (
+phone_id  SERIAL, 
+branch_id integer NOT NULL, 
+section_id integer NOT NULL, 
+device_pool_id integer NOT NULL, 
+phone_template_id integer, 
+calling_search_space_id integer NOT NULL, 
+location_id integer NOT NULL, 
+device_type_id integer NOT NULL, 
+softkey_template_id integer NOT NULL, 
+owner_user_id integer, 
+device_nm varchar(25) NOT NULL, 
+user_locale varchar(50), 
+built_in_bridge varchar(7), 
+privacy varchar(7), 
+addon_module_id_1 integer, 
+addon_module_id_2 integer, 
+addon_module_id_3 integer, 
+speed_dial json NOT NULL, 
+remarks text, 
+update_status varchar(1) DEFAULT 0 NOT NULL, 
+delete_flg varchar(1) DEFAULT 0 NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (phone_id),
+ UNIQUE (device_nm)
+);
+
+CREATE TABLE trn_user (
+user_id  SERIAL, 
+user_role varchar(1) DEFAULT 0 NOT NULL, 
+shared_id integer, 
+enabled_shared_use varchar(1) NOT NULL, 
+fulltime_employee varchar(1) NOT NULL, 
+biz_employee_id varchar(7) NOT NULL, 
+login_id varchar(7) NOT NULL, 
+login_pw text NOT NULL, 
+user_locale varchar(50), 
+cucm_login_id varchar(7) NOT NULL, 
+cucm_login_pw text, 
+user_nm_kanji varchar(20), 
+user_nm_kana varchar(40), 
+birthday varchar(8), 
+last_nm varchar(128) NOT NULL, 
+first_nm varchar(128) NOT NULL, 
+pin varchar(5) NOT NULL, 
+telephone_no varchar(15), 
+enable_cti_application_use varchar(1), 
+manager_user_id text, 
+department text, 
+last_pw_update timestamp NOT NULL, 
+authenticate_failure_num integer DEFAULT 0 NOT NULL, 
+account_lock varchar(1) DEFAULT 0 NOT NULL, 
+create_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+update_date timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL, 
+ PRIMARY KEY (user_id),
+ UNIQUE (login_id, cucm_login_id)
+);
+
+COMMENT ON TABLE mst_branch IS 'MST_拠点';
+COMMENT ON COLUMN mst_branch.branch_id IS '拠点ID';
+COMMENT ON COLUMN mst_branch.branch_cd IS '拠点コード';
+COMMENT ON COLUMN mst_branch.branch_nm IS '拠点名';
+COMMENT ON COLUMN mst_branch.create_date IS '作成日時';
+COMMENT ON COLUMN mst_branch.update_date IS '更新日時';
+
+COMMENT ON TABLE mst_cucm_calling_search_space IS 'MST_CUCM_コーリングサーチスペース';
+COMMENT ON COLUMN mst_cucm_calling_search_space.calling_search_space_id IS 'コーリングサーチスペースID';
+COMMENT ON COLUMN mst_cucm_calling_search_space.calling_search_space_nm IS 'コーリングサーチスペース名';
+COMMENT ON COLUMN mst_cucm_calling_search_space.cd1 IS 'コード1';
+COMMENT ON COLUMN mst_cucm_calling_search_space.cd2 IS 'コード2';
+COMMENT ON COLUMN mst_cucm_calling_search_space.cd3 IS 'コード3';
+COMMENT ON COLUMN mst_cucm_calling_search_space.create_date IS '作成日時';
+COMMENT ON COLUMN mst_cucm_calling_search_space.update_date IS '更新日時';
+
+COMMENT ON TABLE mst_cucm_device_pool IS 'MST_CUCM_デバイスプール';
+COMMENT ON COLUMN mst_cucm_device_pool.device_pool_id IS 'デバイスプールID';
+COMMENT ON COLUMN mst_cucm_device_pool.device_pool_nm IS 'デバイスプール名';
+COMMENT ON COLUMN mst_cucm_device_pool.cisco_unified_callmanager_group IS '呼出管理グループ';
+COMMENT ON COLUMN mst_cucm_device_pool.create_date IS '作成日時';
+COMMENT ON COLUMN mst_cucm_device_pool.update_date IS '更新日時';
+
+COMMENT ON TABLE mst_cucm_device_type IS 'MST_CUCM_デバイスタイプ';
+COMMENT ON COLUMN mst_cucm_device_type.device_type_id IS 'デバイスタイプID';
+COMMENT ON COLUMN mst_cucm_device_type.device_type_nm IS 'デバイスタイプ名';
+COMMENT ON COLUMN mst_cucm_device_type.device_type_no IS 'デバイスタイプ番号';
+COMMENT ON COLUMN mst_cucm_device_type.device_protocol IS 'デバイスプロトコル';
+COMMENT ON COLUMN mst_cucm_device_type.rel_device_type_no IS '関連デバイスタイプ番号';
+COMMENT ON COLUMN mst_cucm_device_type.create_date IS '作成日時';
+COMMENT ON COLUMN mst_cucm_device_type.update_date IS '更新日時';
+
+COMMENT ON TABLE mst_cucm_location IS 'MST_CUCM_ロケーション';
+COMMENT ON COLUMN mst_cucm_location.location_id IS 'ロケーションID';
+COMMENT ON COLUMN mst_cucm_location.location_nm IS 'ロケーション名';
+COMMENT ON COLUMN mst_cucm_location.create_date IS '作成日時';
+COMMENT ON COLUMN mst_cucm_location.update_date IS '更新日時';
+
+COMMENT ON TABLE mst_cucm_phone_template IS 'MST_CUCM_電話テンプレート';
+COMMENT ON COLUMN mst_cucm_phone_template.phone_template_id IS '電話テンプレートID';
+COMMENT ON COLUMN mst_cucm_phone_template.phone_template_nm IS '電話テンプレート名';
+COMMENT ON COLUMN mst_cucm_phone_template.device_type_id IS 'デバイスタイプID';
+COMMENT ON COLUMN mst_cucm_phone_template.create_date IS '作成日時';
+COMMENT ON COLUMN mst_cucm_phone_template.update_date IS '更新日時';
+
+COMMENT ON TABLE mst_cucm_pickup_group IS 'MST_CUCM_ピックアップグループ';
+COMMENT ON COLUMN mst_cucm_pickup_group.pickup_group_id IS 'ピックアップグループID';
+COMMENT ON COLUMN mst_cucm_pickup_group.pickup_group_nm IS 'ピックアップグループ名';
+COMMENT ON COLUMN mst_cucm_pickup_group.pickup_group_no IS 'ピックアップグループ番号';
+COMMENT ON COLUMN mst_cucm_pickup_group.branch_cd IS '拠点CD';
+COMMENT ON COLUMN mst_cucm_pickup_group.section_cd IS '店部課コード';
+COMMENT ON COLUMN mst_cucm_pickup_group.create_date IS '作成日時';
+COMMENT ON COLUMN mst_cucm_pickup_group.update_date IS '更新日時';
+
+COMMENT ON TABLE mst_cucm_voice_mail_profile IS 'MST_CUCM_ボイスメールプロファイル';
+COMMENT ON COLUMN mst_cucm_voice_mail_profile.voice_mail_profile_id IS 'ボイスメールプロファイルID';
+COMMENT ON COLUMN mst_cucm_voice_mail_profile.voice_mail_profile_nm IS 'ボイスメールプロファイル名';
+COMMENT ON COLUMN mst_cucm_voice_mail_profile.create_date IS '作成日時';
+COMMENT ON COLUMN mst_cucm_voice_mail_profile.update_date IS '更新日時';
+
+COMMENT ON TABLE mst_section IS 'MST_店部課';
+COMMENT ON COLUMN mst_section.section_id IS '店部課ID';
+COMMENT ON COLUMN mst_section.company_cd IS '会社コード';
+COMMENT ON COLUMN mst_section.section_cd IS '店部課コード';
+COMMENT ON COLUMN mst_section.section_nm IS '店部課名';
+COMMENT ON COLUMN mst_section.parent_section_cd IS '親店部課コード';
+COMMENT ON COLUMN mst_section.organization_cd IS '組織コード';
+COMMENT ON COLUMN mst_section.print_order IS 'プリント順';
+COMMENT ON COLUMN mst_section.create_date IS '作成日時';
+COMMENT ON COLUMN mst_section.update_date IS '更新日時';
+
+COMMENT ON TABLE mst_shared_nm IS 'MST_共用名';
+COMMENT ON COLUMN mst_shared_nm.shared_id IS '共用名ID';
+COMMENT ON COLUMN mst_shared_nm.shared_nm IS '共用名';
+COMMENT ON COLUMN mst_shared_nm.create_date IS '作成日時';
+COMMENT ON COLUMN mst_shared_nm.update_date IS '更新日時';
+
+COMMENT ON TABLE mst_cucm_softkey_template IS 'MST_CUCM_ソフトキーテンプレート';
+COMMENT ON COLUMN mst_cucm_softkey_template.softkey_template_id IS 'ソフトキーテンプレートID';
+COMMENT ON COLUMN mst_cucm_softkey_template.softkey_template_nm IS 'ソフトキーテンプレート名';
+COMMENT ON COLUMN mst_cucm_softkey_template.device_type_no IS 'デバイスタイプ番号';
+COMMENT ON COLUMN mst_cucm_softkey_template.create_date IS '作成日時';
+COMMENT ON COLUMN mst_cucm_softkey_template.update_date IS '更新日時';
+
+COMMENT ON TABLE rel_branch_section IS 'REL_拠点-店部課';
+COMMENT ON COLUMN rel_branch_section.branch_id IS '拠点ID';
+COMMENT ON COLUMN rel_branch_section.section_id IS '店部課ID';
+COMMENT ON COLUMN rel_branch_section.create_date IS '作成日時';
+COMMENT ON COLUMN rel_branch_section.update_date IS '更新日時';
+
+COMMENT ON TABLE rel_cucm_phone_line IS 'REL_電話機-ライン';
+COMMENT ON COLUMN rel_cucm_phone_line.phone_id IS '電話ID';
+COMMENT ON COLUMN rel_cucm_phone_line.line_id IS 'LINEID';
+COMMENT ON COLUMN rel_cucm_phone_line.no IS '連番';
+COMMENT ON COLUMN rel_cucm_phone_line.line_txt_label IS 'テキストラベル';
+COMMENT ON COLUMN rel_cucm_phone_line.external_phone_no_mask IS '外線通知番号';
+COMMENT ON COLUMN rel_cucm_phone_line.ring_setting_nm IS '鳴動設定名';
+COMMENT ON COLUMN rel_cucm_phone_line.dialin IS 'ダイヤルイン';
+COMMENT ON COLUMN rel_cucm_phone_line.remarks IS '備考';
+COMMENT ON COLUMN rel_cucm_phone_line.delete_flg IS '削除フラグ';
+COMMENT ON COLUMN rel_cucm_phone_line.create_date IS '作成日時';
+COMMENT ON COLUMN rel_cucm_phone_line.update_date IS '更新日時';
+
+COMMENT ON TABLE rel_cucm_user_phone IS 'REL_ユーザ-電話機';
+COMMENT ON COLUMN rel_cucm_user_phone.user_id IS 'ユーザーID';
+COMMENT ON COLUMN rel_cucm_user_phone.phone_id IS '電話機ID';
+COMMENT ON COLUMN rel_cucm_user_phone.delete_flg IS '削除フラグ';
+COMMENT ON COLUMN rel_cucm_user_phone.create_date IS '作成日時';
+COMMENT ON COLUMN rel_cucm_user_phone.update_date IS '更新日時';
+
+COMMENT ON TABLE rel_user_section IS 'REL_ユーザー-店部課';
+COMMENT ON COLUMN rel_user_section.user_id IS 'ユーザーID';
+COMMENT ON COLUMN rel_user_section.section_id IS '店部課ID';
+COMMENT ON COLUMN rel_user_section.delete_reserve IS '削除予約';
+COMMENT ON COLUMN rel_user_section.create_date IS '作成日時';
+COMMENT ON COLUMN rel_user_section.update_date IS '更新日時';
+
+COMMENT ON TABLE tmp_ad IS 'TMP_AD情報';
+COMMENT ON COLUMN tmp_ad.ad_id IS 'AD_ID';
+COMMENT ON COLUMN tmp_ad.login_nm IS 'ログイン名';
+COMMENT ON COLUMN tmp_ad.disp_nm IS '英語姓名';
+COMMENT ON COLUMN tmp_ad.last_nm IS '英語姓';
+COMMENT ON COLUMN tmp_ad.first_nm IS '英語名';
+COMMENT ON COLUMN tmp_ad.mail IS 'メールアドレス';
+COMMENT ON COLUMN tmp_ad.position IS '社員区分';
+
+COMMENT ON TABLE tmp_department IS 'TMP_店部課情報';
+COMMENT ON COLUMN tmp_department.department_id IS '店部課ID';
+COMMENT ON COLUMN tmp_department.company_cd IS '会社コード';
+COMMENT ON COLUMN tmp_department.department_cd IS '店部課コード';
+COMMENT ON COLUMN tmp_department.create_date IS '作成日時';
+COMMENT ON COLUMN tmp_department.update_date IS '更新日時';
+
+COMMENT ON TABLE tmp_employee IS 'TMP_社員情報';
+COMMENT ON COLUMN tmp_employee.employee_id IS '社員ID';
+COMMENT ON COLUMN tmp_employee.company_cd IS '会社コード';
+COMMENT ON COLUMN tmp_employee.employee_cd IS '社員コード';
+COMMENT ON COLUMN tmp_employee.assign_grade IS '所属順位';
+COMMENT ON COLUMN tmp_employee.create_date IS '作成日時';
+COMMENT ON COLUMN tmp_employee.update_date IS '更新日時';
+
+COMMENT ON TABLE tmp_executive IS 'TMP_役職';
+COMMENT ON COLUMN tmp_executive.executive_post_id IS '役職ID';
+COMMENT ON COLUMN tmp_executive.executive_post_cd IS '役職コード';
+COMMENT ON COLUMN tmp_executive.create_date IS '作成日時';
+COMMENT ON COLUMN tmp_executive.update_date IS '更新日時';
+
+COMMENT ON TABLE tmp_integratedid_department IS 'TMP_統合ID_店部課情報';
+COMMENT ON COLUMN tmp_integratedid_department.department_id IS '店部課ID';
+COMMENT ON COLUMN tmp_integratedid_department.organization_cd IS '組織コード';
+COMMENT ON COLUMN tmp_integratedid_department.company_cd IS '会社コード';
+COMMENT ON COLUMN tmp_integratedid_department.company_nm IS '会社名';
+COMMENT ON COLUMN tmp_integratedid_department.control_cd IS '統轄コード';
+COMMENT ON COLUMN tmp_integratedid_department.control_nm IS '統轄名';
+COMMENT ON COLUMN tmp_integratedid_department.charge_cd IS '担当コード';
+COMMENT ON COLUMN tmp_integratedid_department.charge_nm IS '担当名';
+COMMENT ON COLUMN tmp_integratedid_department.parent_department_cd IS '親店部課コード';
+COMMENT ON COLUMN tmp_integratedid_department.parent_department_nm IS '親店部課名';
+COMMENT ON COLUMN tmp_integratedid_department.department_cd IS '店部課コード';
+COMMENT ON COLUMN tmp_integratedid_department.department_nm IS '店部課名';
+COMMENT ON COLUMN tmp_integratedid_department.department_nm_en IS '店部課名英語';
+COMMENT ON COLUMN tmp_integratedid_department.zip_cd IS '郵便番号';
+COMMENT ON COLUMN tmp_integratedid_department.address IS '住所';
+COMMENT ON COLUMN tmp_integratedid_department.telephone_no IS '電話番号';
+COMMENT ON COLUMN tmp_integratedid_department.fax_no IS 'FAX番号';
+COMMENT ON COLUMN tmp_integratedid_department.extension_no IS '内線番号';
+COMMENT ON COLUMN tmp_integratedid_department.class_sales IS '営業・非営業区分';
+COMMENT ON COLUMN tmp_integratedid_department.class_data_input IS 'データ入力区分';
+COMMENT ON COLUMN tmp_integratedid_department.update_date IS '更新日時';
+
+COMMENT ON TABLE tmp_integratedid_employee IS 'TMP_統合ID_社員情報';
+COMMENT ON COLUMN tmp_integratedid_employee.employee_id IS '社員ID';
+COMMENT ON COLUMN tmp_integratedid_employee.organization_cd IS '組織コード';
+COMMENT ON COLUMN tmp_integratedid_employee.company_cd IS '会社コード';
+COMMENT ON COLUMN tmp_integratedid_employee.department_cd IS '店部課コード';
+COMMENT ON COLUMN tmp_integratedid_employee.department_nm IS '店部課名';
+COMMENT ON COLUMN tmp_integratedid_employee.employee_cd IS '社員コード';
+COMMENT ON COLUMN tmp_integratedid_employee.employee_nm_kanji IS '社員氏名';
+COMMENT ON COLUMN tmp_integratedid_employee.employee_nm_kana IS '社員氏名カナ';
+COMMENT ON COLUMN tmp_integratedid_employee.executive_post_cd IS '役職コード';
+COMMENT ON COLUMN tmp_integratedid_employee.post_lineage_cd IS '職系コード';
+COMMENT ON COLUMN tmp_integratedid_employee.class IS 'クラス';
+COMMENT ON COLUMN tmp_integratedid_employee.sex_cd IS '性別コード';
+COMMENT ON COLUMN tmp_integratedid_employee.birthday IS '生年月日';
+COMMENT ON COLUMN tmp_integratedid_employee.mail_address IS 'メールアドレス';
+COMMENT ON COLUMN tmp_integratedid_employee.assign_grade IS '所属順位';
+COMMENT ON COLUMN tmp_integratedid_employee.class_tel_addressbook IS '掲載区分';
+COMMENT ON COLUMN tmp_integratedid_employee.class_temporary_transfer IS '出向区分';
+COMMENT ON COLUMN tmp_integratedid_employee.mail_address_automade_flg IS 'メール作成フラグ';
+COMMENT ON COLUMN tmp_integratedid_employee.class_data_input IS 'データ入力区分';
+COMMENT ON COLUMN tmp_integratedid_employee.update_date IS '更新日時';
+
+COMMENT ON TABLE tmp_integratedid_organization IS 'TMP_統合ID_組織情報';
+COMMENT ON COLUMN tmp_integratedid_organization.organization_id IS '組織ID';
+COMMENT ON COLUMN tmp_integratedid_organization.organization_cd IS '組織コード';
+COMMENT ON COLUMN tmp_integratedid_organization.organization_nm IS '組織名';
+COMMENT ON COLUMN tmp_integratedid_organization.organization_no IS '組織No.';
+COMMENT ON COLUMN tmp_integratedid_organization.organization_abbreviated_nm IS '組織名略';
+COMMENT ON COLUMN tmp_integratedid_organization.print_order IS 'プリント順';
+COMMENT ON COLUMN tmp_integratedid_organization.class_sales IS '営業・非営業区分';
+COMMENT ON COLUMN tmp_integratedid_organization.class_data_input IS 'データ入力区分';
+COMMENT ON COLUMN tmp_integratedid_organization.update_date IS '更新日時';
+
+COMMENT ON TABLE tmp_organization IS 'TMP_組織情報';
+COMMENT ON COLUMN tmp_organization.organization_id IS '組織ID';
+COMMENT ON COLUMN tmp_organization.organization_cd IS '組織コード';
+COMMENT ON COLUMN tmp_organization.create_date IS '作成日時';
+COMMENT ON COLUMN tmp_organization.update_date IS '更新日時';
+
+COMMENT ON TABLE trn_charge_association IS 'TRN_課金連携';
+COMMENT ON COLUMN trn_charge_association.charge_id IS '課金ID';
+COMMENT ON COLUMN trn_charge_association.branch_id IS '拠点ID';
+COMMENT ON COLUMN trn_charge_association.section_id IS '店部課ID';
+COMMENT ON COLUMN trn_charge_association.remarks IS '備考';
+COMMENT ON COLUMN trn_charge_association.create_date IS '作成日時';
+COMMENT ON COLUMN trn_charge_association.update_date IS '更新日時';
+
+COMMENT ON TABLE trn_cuc_association IS 'TRN_CUC連携';
+COMMENT ON COLUMN trn_cuc_association.cuc_id IS 'CUC_ID';
+COMMENT ON COLUMN trn_cuc_association.phone_id IS '電話機ID';
+COMMENT ON COLUMN trn_cuc_association.create_date IS '作成日時';
+COMMENT ON COLUMN trn_cuc_association.update_date IS '更新日時';
+
+COMMENT ON TABLE trn_diff_cucm IS 'TRN_CUCM差分';
+COMMENT ON COLUMN trn_diff_cucm.diff_cucm_id IS 'CUCM差分ID';
+COMMENT ON COLUMN trn_diff_cucm.cucm_mac_address IS 'MACアドレス（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_directory_no IS '内線番号（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_calling_search_space_nm IS 'コーリングサーチスペース名（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_location_nm IS 'ロケーション名（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_device_pool_nm IS 'デバイスプール名（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_phone_button_template_nm IS 'ボタンテンプレート名（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_addon_module_nm_1 IS '拡張モジュール１（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_addon_module_nm_2 IS '拡張モジュール２（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_addon_module_nm_3 IS '拡張モジュール３（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_fwd_all_css IS '全転送CSS（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_fwd_busy_css IS '話中転送先（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_fwd_busy_destination IS '話中転送先CSS（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_fwd_noans_css IS '不応答転送先（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_fwd_noans_destination IS '不応答転送先CSS（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_call_pickup_group_nm IS 'ピックアップグループ名（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_voice_mail_profile_nm IS 'ボイスメールプロファイル名（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_no IS '連番（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_external_phone_no_mask IS '外線通知番号（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_line_txt_label IS 'テキストラベル（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.cucm_ring_setting_nm IS '鳴動設定名（CUCM）';
+COMMENT ON COLUMN trn_diff_cucm.app_mac_address IS 'MACアドレス（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_directory_no IS '内線番号（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_calling_search_space_nm IS 'コーリングサーチスペース名（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_location_nm IS 'ロケーション名（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_device_pool_nm IS 'デバイスプール名（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_phone_button_template_nm IS 'ボタンテンプレート名（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_addon_module_nm_1 IS '拡張モジュール１（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_addon_module_nm_2 IS '拡張モジュール２（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_addon_module_nm_3 IS '拡張モジュール３（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_fwd_all_css IS '全転送CSS（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_fwd_busy_css IS '話中転送先（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_fwd_busy_destination IS '話中転送先CSS（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_fwd_noans_css IS '不応答転送先（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_fwd_noans_destination IS '不応答転送先CSS（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_call_pickup_group_nm IS 'ピックアップグループ名（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_voice_mail_profile_nm IS 'ボイスメールプロファイル名（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_no IS '連番（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_external_phone_no_mask IS '外線通知番号（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_line_txt_label IS 'テキストラベル（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.app_ring_setting_nm IS '鳴動設定名（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_cucm.create_date IS '作成日時';
+COMMENT ON COLUMN trn_diff_cucm.update_date IS '更新日時';
+
+COMMENT ON TABLE trn_diff_officelink IS 'TRN_オフィスリンク差分';
+COMMENT ON COLUMN trn_diff_officelink.diff_officelink_id IS 'オフィスリンク差分ID';
+COMMENT ON COLUMN trn_diff_officelink.office_link_directory_no IS '内線番号（オフィスリンク）';
+COMMENT ON COLUMN trn_diff_officelink.office_link_foma_no IS 'FOMA番号（オフィスリンク）';
+COMMENT ON COLUMN trn_diff_officelink.office_link_sip_id IS 'SIP ID（オフィスリンク）';
+COMMENT ON COLUMN trn_diff_officelink.office_link_sip_pw IS 'SIP パスワード（オフィスリンク）';
+COMMENT ON COLUMN trn_diff_officelink.office_link_web_cuscom_user_nm IS 'Web カスコンユーザ名（オフィスリンク）';
+COMMENT ON COLUMN trn_diff_officelink.office_link_web_cuscom_pw IS 'Web カスコン パスワード（オフィスリンク）';
+COMMENT ON COLUMN trn_diff_officelink.app_directory_no IS '内線番号（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_officelink.app_foma_no IS 'FOMA番号（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_officelink.app_sip_id IS 'SIP ID（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_officelink.app_sip_pw IS 'SIP パスワード（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_officelink.app_web_cuscom_user_nm IS 'Web カスコンユーザ名（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_officelink.app_web_cuscom_pw IS 'Web カスコン パスワード（メンテナンスシステム）';
+COMMENT ON COLUMN trn_diff_officelink.create_date IS '作成日時';
+COMMENT ON COLUMN trn_diff_officelink.update_date IS '更新日時';
+
+COMMENT ON TABLE trn_line IS 'TRN_ライン';
+COMMENT ON COLUMN trn_line.line_id IS 'ラインID';
+COMMENT ON COLUMN trn_line.fmc_id IS 'FMC ID';
+COMMENT ON COLUMN trn_line.charge_id IS '課金ID';
+COMMENT ON COLUMN trn_line.voice_mail_profile_id IS 'ボイスメールプロファイルID';
+COMMENT ON COLUMN trn_line.pickup_group_id IS 'ピックアップグループID';
+COMMENT ON COLUMN trn_line.directory_no IS '内線番号';
+COMMENT ON COLUMN trn_line.fwd_all_destination IS '全転送';
+COMMENT ON COLUMN trn_line.fwd_all_css IS '全転送CSS';
+COMMENT ON COLUMN trn_line.fwd_busy_destination IS '話中転送先';
+COMMENT ON COLUMN trn_line.fwd_busy_css IS '話中転送先CSS';
+COMMENT ON COLUMN trn_line.fwd_noans_destination IS '不応答転送先';
+COMMENT ON COLUMN trn_line.fwd_noans_css IS '不応答転送先CSS';
+COMMENT ON COLUMN trn_line.fwd_noans_ring_duration IS '不応答転送待ち時間';
+COMMENT ON COLUMN trn_line.maximum_no_of_calls IS '最大コール数';
+COMMENT ON COLUMN trn_line.busy_trigger IS 'ビジートリガー';
+COMMENT ON COLUMN trn_line.calling_party_transformation_mask IS '発呼側トランスフォーメーションマスク';
+COMMENT ON COLUMN trn_line.gw_repletion_special_no IS 'GW補足特番';
+COMMENT ON COLUMN trn_line.voice_logger IS '通録設定';
+COMMENT ON COLUMN trn_line.representative_pickup IS '代表ピックアップ設定';
+COMMENT ON COLUMN trn_line.update_status IS '更新ステータス';
+COMMENT ON COLUMN trn_line.create_date IS '作成日時';
+COMMENT ON COLUMN trn_line.update_date IS '更新日時';
+
+COMMENT ON TABLE trn_officelink_fmc IS 'TRN_オフィスリンク_FMC端末情報';
+COMMENT ON COLUMN trn_officelink_fmc.fmc_id IS 'FMC ID';
+COMMENT ON COLUMN trn_officelink_fmc.directory_no IS '内線番号';
+COMMENT ON COLUMN trn_officelink_fmc.foma_no IS 'FOMA番号';
+COMMENT ON COLUMN trn_officelink_fmc.sip_id IS 'SIP ID';
+COMMENT ON COLUMN trn_officelink_fmc.sip_pw IS 'SIP パスワード';
+COMMENT ON COLUMN trn_officelink_fmc.web_cuscom_user_nm IS 'Web カスコンユーザ名';
+COMMENT ON COLUMN trn_officelink_fmc.web_cuscom_pw IS 'Web カスコン パスワード';
+COMMENT ON COLUMN trn_officelink_fmc.update_status IS '更新ステータス';
+COMMENT ON COLUMN trn_officelink_fmc.delete_flg IS '削除フラグ';
+COMMENT ON COLUMN trn_officelink_fmc.create_date IS '作成日時';
+COMMENT ON COLUMN trn_officelink_fmc.update_date IS '更新日時';
+
+COMMENT ON TABLE trn_password_change_tracking IS 'TRN_パスワード変更履歴';
+COMMENT ON COLUMN trn_password_change_tracking.tracking_id IS '履歴ID';
+COMMENT ON COLUMN trn_password_change_tracking.user_id IS 'ユーザーID';
+COMMENT ON COLUMN trn_password_change_tracking.no IS '連番';
+COMMENT ON COLUMN trn_password_change_tracking.before_pw IS '前回パスワード';
+COMMENT ON COLUMN trn_password_change_tracking.create_date IS '作成日時';
+COMMENT ON COLUMN trn_password_change_tracking.update_date IS '更新日時';
+
+COMMENT ON TABLE trn_phone IS 'TRN_電話機';
+COMMENT ON COLUMN trn_phone.phone_id IS '電話ID';
+COMMENT ON COLUMN trn_phone.branch_id IS '拠点ID';
+COMMENT ON COLUMN trn_phone.section_id IS '店部課ID';
+COMMENT ON COLUMN trn_phone.device_pool_id IS 'デバイスプールID';
+COMMENT ON COLUMN trn_phone.phone_template_id IS '電話テンプレートID';
+COMMENT ON COLUMN trn_phone.calling_search_space_id IS 'コーリングサーチスペースID';
+COMMENT ON COLUMN trn_phone.location_id IS 'ロケーションID';
+COMMENT ON COLUMN trn_phone.device_type_id IS 'デバイスタイプID';
+COMMENT ON COLUMN trn_phone.softkey_template_id IS 'ソフトキーテンプレートID';
+COMMENT ON COLUMN trn_phone.owner_user_id IS 'オーナーユーザーID';
+COMMENT ON COLUMN trn_phone.device_nm IS 'デバイス名';
+COMMENT ON COLUMN trn_phone.user_locale IS 'ユーザーロケール';
+COMMENT ON COLUMN trn_phone.built_in_bridge IS 'ビルトインブリッジ';
+COMMENT ON COLUMN trn_phone.privacy IS 'プライバシー';
+COMMENT ON COLUMN trn_phone.addon_module_id_1 IS '拡張モジュール１';
+COMMENT ON COLUMN trn_phone.addon_module_id_2 IS '拡張モジュール２';
+COMMENT ON COLUMN trn_phone.addon_module_id_3 IS '拡張モジュール３';
+COMMENT ON COLUMN trn_phone.speed_dial IS 'スピードダイアル';
+COMMENT ON COLUMN trn_phone.remarks IS '備考';
+COMMENT ON COLUMN trn_phone.update_status IS '更新ステータス';
+COMMENT ON COLUMN trn_phone.delete_flg IS '削除フラグ';
+COMMENT ON COLUMN trn_phone.create_date IS '作成日時';
+COMMENT ON COLUMN trn_phone.update_date IS '更新日時';
+
+COMMENT ON TABLE trn_user IS 'TRN_ユーザー';
+COMMENT ON COLUMN trn_user.user_id IS 'ユーザーID';
+COMMENT ON COLUMN trn_user.user_role IS 'ユーザー権限';
+COMMENT ON COLUMN trn_user.shared_id IS '共用化ID';
+COMMENT ON COLUMN trn_user.enabled_shared_use IS '共用ユーザー区分';
+COMMENT ON COLUMN trn_user.fulltime_employee IS '正社員区分';
+COMMENT ON COLUMN trn_user.biz_employee_id IS '人事情報側ユーザー区分';
+COMMENT ON COLUMN trn_user.login_id IS 'ログインID';
+COMMENT ON COLUMN trn_user.login_pw IS 'ログインパスワード';
+COMMENT ON COLUMN trn_user.user_locale IS 'ユーザーロケール';
+COMMENT ON COLUMN trn_user.cucm_login_id IS 'CUCMログインID';
+COMMENT ON COLUMN trn_user.cucm_login_pw IS 'CUCMログインパスワード';
+COMMENT ON COLUMN trn_user.user_nm_kanji IS 'ユーザー名・漢字';
+COMMENT ON COLUMN trn_user.user_nm_kana IS 'ユーザー名・カナ';
+COMMENT ON COLUMN trn_user.birthday IS '生年月日';
+COMMENT ON COLUMN trn_user.last_nm IS 'ユーザー名・姓(CUCM)';
+COMMENT ON COLUMN trn_user.first_nm IS 'ユーザー名・名(CUCM)';
+COMMENT ON COLUMN trn_user.pin IS 'PIN(CUCM)';
+COMMENT ON COLUMN trn_user.telephone_no IS '電話番号(CUCM)';
+COMMENT ON COLUMN trn_user.enable_cti_application_use IS 'CTIアプリ利用フラグ(CUCM)';
+COMMENT ON COLUMN trn_user.manager_user_id IS 'マネージャID(CUCM)';
+COMMENT ON COLUMN trn_user.department IS '部署名(CUCM)';
+COMMENT ON COLUMN trn_user.last_pw_update IS '最終パスワード変更日時';
+COMMENT ON COLUMN trn_user.authenticate_failure_num IS '認証失敗回数';
+COMMENT ON COLUMN trn_user.account_lock IS 'アカウントロック';
+COMMENT ON COLUMN trn_user.create_date IS '作成日時';
+COMMENT ON COLUMN trn_user.update_date IS '更新日時';

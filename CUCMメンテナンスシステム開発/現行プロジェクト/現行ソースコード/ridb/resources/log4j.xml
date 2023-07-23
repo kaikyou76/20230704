@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd"> -->
+<!-- <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/"> -->
+<!DOCTYPE log4j:configuration PUBLIC "-//Apache Software Foundation//DTD Log4J Configuration 1.0//EN" "http://renga.googlecode.com/svn-history/r4/vendor/logging-log4j-1.2.14/docs/api/org/apache/log4j/xml/log4j.dtd">
+<log4j:configuration>
+
+	<appender name="null" class="org.apache.log4j.varia.NullAppender" />
+
+	<!-- コンソール -->
+	<appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%d{yyyy/MM/dd HH:mm:ss}] [%-5p] %c [line]%L : %m%n"/>
+		</layout>
+	</appender>
+
+	<!-- ログファイル -->
+	<appender name="appLogfile" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="threshold" value="DEBUG"/>
+		<param name="encoding" value="Shift_JIS"/>
+		<param name="append" value="true" />
+		<param name="File" value="/var/www/download/logs/web/webApplication.log" />
+		<param name="DatePattern" value="_yyyyMMdd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%d{yyyy/MM/dd HH:mm:ss}] [%-5p] %c [line]%L : %m%n"/>
+		</layout>
+	</appender>
+	
+	<!-- エラーログ出力 Appender -->
+	<appender name="errorLogfile" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="Threshold" value="ERROR" />
+		<param name="encoding" value="Shift_JIS"/>
+		<param name="Append" value="true" />
+		<param name="File" value="/var/www/download/logs/web/webError.log" />
+		<param name="DatePattern" value="_yyyyMMdd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss,SSS}] [%-25C{1}] [%-5p] %m%n" />
+		</layout>
+	</appender>
+
+	<category name="org.apache">
+		<priority value="INFO" />
+		<appender-ref ref="appLogfile" />
+	</category>
+
+	<category name="org.springframework">
+		<priority value="INFO" />
+		<appender-ref ref="appLogfile" />
+	</category>
+
+	<category name="org.hibernate">
+		<priority value="DEBUG" />
+		<appender-ref ref="appLogfile" />
+	</category>
+
+	<category name="org.mybatis">
+		<priority value="INFO" />
+		<appender-ref ref="appLogfile" />
+	</category>
+
+	<category name="java.sql.Connection">
+		<priority value="INFO" />
+		<appender-ref ref="appLogfile" />
+	</category>
+
+	<category name="java.sql.PreparedStatement">
+		<priority value="DEBUG" />
+		<appender-ref ref="appLogfile" />
+	</category>
+
+	<category name="jp.co.netmarks">
+		<priority value="DEBUG" />
+		<appender-ref ref="appLogfile" />
+	</category>
+
+	<category name="jp.co.ksc">
+		<priority value="DEBUG" />
+		<appender-ref ref="appLogfile" />
+	</category>
+	
+	<root>
+		<priority value="ERROR" />
+		<appender-ref ref="errorLogfile" />
+	</root>
+
+</log4j:configuration>

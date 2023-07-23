@@ -1,0 +1,51 @@
+局面			詳細設計						クライアント名／プロジェクト名							SMBC日興/IP電話EOL										頁		
+機能名			CUCMメンテナンスシステム																		作成日			2023/04/01		作成者		PISE 髙田
+資料名			VEW_店部課階層																		更新日					更新者		
+エンティティ一覧へ				ER図へ		CRUD図(オンライン)へ				CRUD図(バッチ)へ																		
+ビュー名称					VEW_店部課階層												データベース名					irdb				スキーマ名		public
+ビューID					vew_section_level												レコードサイズ									文字コード		Shift-JIS
+																												
+NO	ベーステーブル名							ベーステーブルID									備考											
+1	MST_店部課							mst_section																				
+2																												
+3																												
+																												
+NO	項目論理名							項目物理名									取得方法											
+1	親店部課ID							parent_section_id									MST_店部課.店部課ID(親店部課)											
+2	親会社CD							parent_company_cd									MST_店部課.会社CD(親店部課)											
+3	親店部課CD							parent_section_cd									MST_店部課.店部課CD(親店部課)											
+4	親店部課名							parent_section_nm									MST_店部課.店部課名(親店部課)											
+5	親店部課プリント順							parent_print_order									MST_店部課.プリント順(親店部課)											
+6	子店部課ID							child_section_id									MST_店部課.店部課ID											
+7	部署CD							child_company_cd									MST_店部課.会社CD											
+8	子店部課CD							child_section_cd									MST_店部課.店部課CD											
+9	子店部課名							child_section_nm									MST_店部課.店部課名											
+10	子プリント順							child_print_order									MST_店部課.プリント順											
+																												
+備考																												
+																												
+	■	データ抽出条件																										
+		店部課マスタを内部結合する。																										
+			店部課マスタ.店部課CD = 店部課マスタ.親店部課CD　AND																									
+			店部課マスタ.会社 = 店部課マスタ.会社																									
+																												
+																												
+DDL																												
+																												
+	CREATE VIEW vew_section_level AS																											
+	SELECT tparent.section_id AS parent_section_id,																											
+		tparent.company_cd AS parent_company_cd,																										
+		tparent.section_cd AS parent_section_cd,																										
+		tparent.section_nm AS parent_section_nm,																										
+		tparent.print_order AS parent_print_order,																										
+		tchild.section_id AS child_section_id,																										
+		tchild.company_cd AS child_company_cd,																										
+		tchild.section_cd AS child_section_cd,																										
+		tchild.section_nm AS child_section_nm,																										
+		tchild.print_order AS child_print_order																										
+	FROM (																											
+		mst_section tparent 																										
+			JOIN mst_section tchild 																									
+				ON ((((tparent.section_id) ::text = (tchild.section_id) ::text) 																								
+				AND ((tparent.company_cd)::text = (tchild.company_cd) ::text)))) ;																								
+																												

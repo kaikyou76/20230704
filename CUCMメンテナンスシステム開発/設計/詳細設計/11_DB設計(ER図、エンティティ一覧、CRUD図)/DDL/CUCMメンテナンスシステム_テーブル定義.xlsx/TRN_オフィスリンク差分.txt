@@ -1,0 +1,24 @@
+局面			詳細設計						クライアント名／プロジェクト名							SMBC日興/IP電話EOL											頁		
+機能名			CUCMメンテナンスシステム																			作成日			2023/04/19		作成者		PISE 木村
+資料名			TRN_オフィスリンク差分																			更新日					更新者		
+エンティティ一覧へ				ER図へ		CRUD図(オンライン)へ				CRUD図(バッチ)へ																			
+テーブル名称					TRN_オフィスリンク差分												データベース名						irdb				スキーマ名		public
+テーブルID					trn_diff_officelink												レコードサイズ										文字コード		Shift-JIS
+																													
+NO	Key	項目論理名						項目物理名									データ型		桁数	NULL	UNIQUE	初期値		増分	上限値	サイクル	備考		
+1	PK	オフィスリンク差分ID						diff_officelink_id									INTEGER							1		〇	自動採番		
+2		内線番号（オフィスリンク）						office_link_directory_no									VARCHAR		8	〇									
+3		FOMA番号（オフィスリンク）						office_link_foma_no									VARCHAR		11	〇									
+4		SIP ID（オフィスリンク）						office_link_sip_id									VARCHAR		8	〇									
+5		SIP パスワード（オフィスリンク）						office_link_sip_pw									VARCHAR		8	〇									
+6		Web カスコンユーザ名（オフィスリンク）						office_link_web_cuscom_user_nm									VARCHAR		8	〇									
+7		Web カスコン パスワード（オフィスリンク）						office_link_web_cuscom_pw									TEXT			〇									
+8		内線番号（メンテナンスシステム）						app_directory_no									VARCHAR		8	〇									
+9		FOMA番号（メンテナンスシステム）						app_foma_no									VARCHAR		11	〇									
+10		SIP ID（メンテナンスシステム）						app_sip_id									VARCHAR		8	〇									
+11		SIP パスワード（メンテナンスシステム）						app_sip_pw									VARCHAR		8	〇									
+12		Web カスコンユーザ名（メンテナンスシステム）						app_web_cuscom_user_nm									VARCHAR		8	〇									
+13		Web カスコン パスワード（メンテナンスシステム）						app_web_cuscom_pw									TEXT			〇									
+14		作成日時						create_date									TIMESTAMP					現在日時							
+15		更新日時						update_date									TIMESTAMP					現在日時							
+

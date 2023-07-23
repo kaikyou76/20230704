@@ -1,0 +1,13 @@
+局面			詳細設計						クライアント名／プロジェクト名							SMBC日興/IP電話EOL											頁		
+機能名			CUCMメンテナンスシステム																			作成日			2023/04/01		作成者		PISE 髙田
+資料名			MST_CUCM_デバイスプール																			更新日					更新者		
+エンティティ一覧へ				ER図へ		CRUD図(オンライン)へ				CRUD図(バッチ)へ																			
+テーブル名称					MST_CUCM_デバイスプール												データベース名						irdb				スキーマ名		public
+テーブルID					mst_cucm_device_pool												レコードサイズ										文字コード		Shift-JIS
+																													
+NO	Key	項目論理名						項目物理名									データ型		桁数	NULL	UNIQUE	初期値		増分	上限値	サイクル	備考		
+1	PK	デバイスプールID						device_pool_id									INTEGER							1		〇	自動採番		
+2		デバイスプール名						device_pool_nm									VARCHAR		100		〇								
+3		呼出管理グループ						cisco_unified_callmanager_group									VARCHAR		36										
+4		作成日時						create_date									TIMESTAMP					現在日時							
+5		更新日時						update_date									TIMESTAMP					現在日時							

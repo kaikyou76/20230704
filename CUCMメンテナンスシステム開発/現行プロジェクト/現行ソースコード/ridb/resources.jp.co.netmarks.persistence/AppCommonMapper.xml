@@ -1,0 +1,971 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.AppCommonMapper">
+
+
+	<!-- ログイン情報取得 -->
+	<select id="getUserInfo" parameterType="Map" resultType="Map">
+		SELECT
+			APP_USER.APP_USER_ID                AS "userId"
+			, APP_USER.USER_ROLE                AS "userRole"
+			, APP_USER.LOGIN_ID                 AS "loginId"
+			, APP_USER.LOGIN_PASSWORD           AS "password"
+			, APP_USER.NAME_KANJI               AS "kanjiUserName"
+			, APP_USER.NAME_KANA                AS "kanaUserName"
+			, APP_USER.LAST_PASSWORD_UPDATETIME AS "lastPasswordUpdatetime"
+		FROM
+			APP_USER APP_USER
+		WHERE
+			APP_USER.LOGIN_ID       = #{loginId}
+		<if test="password != null and password != ''">
+			AND APP_USER.LOGIN_PASSWORD = #{password}
+		</if>
+		<if test="deleted != null and deleted != ''">
+			AND APP_USER.DELETED = #{deleted}
+		</if>
+	</select>
+
+	<!-- 拠点リスト取得 -->
+	<select id="getBranchList" parameterType="String" resultType="LabelValueModel">
+		SELECT
+			  M_BRANCH.BRANCH_ID AS VALUE	<!-- 拠点ID -->
+			, M_BRANCH.BRANCH_ID || ' ' || M_BRANCH.BRANCH_NAME
+			<if test="_parameter != null and _parameter != ''">
+			|| '(' || M_BRANCH.CLUSTER_ID || ')'
+			</if>
+			                     AS LABEL	<!-- 拠点名 -->
+		FROM
+			M_BRANCH M_BRANCH			<!-- 拠点マスタ -->
+		ORDER BY
+			M_BRANCH.BRANCH_ID
+	</select>
+
+	<!-- 店部課リスト取得 -->
+	<select id="getSectionList" parameterType="string" resultType="LabelValueModel">
+		SELECT
+			  V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID || ',' ||
+			  V_ORGANIZATION_LEVEL.CHILD_SECTION_ID AS VALUE	<!-- 店部課ID＋会社ID -->
+			, V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID || ' ' ||
+			  V_ORGANIZATION_LEVEL.CHILD_SECTION_ID || ' ' ||
+			  V_ORGANIZATION_LEVEL.CHILD_SECTION_NAME AS LABEL	<!-- 店部課名 -->
+		FROM
+			V_ORGANIZATION_LEVEL V_ORGANIZATION_LEVEL	<!-- 店部課ビュー -->
+		<where>
+			<if test="_parameter != null and _parameter != ''">
+				V_ORGANIZATION_LEVEL.BRANCH_ID = #{id}
+			</if>
+		</where>
+		ORDER BY
+			  V_ORGANIZATION_LEVEL.CHILD_SECTION_ID
+			, V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID
+	</select>
+
+	<!-- 拠点＿店部課リスト取得（動的用） -->
+	<select id="getBranchSectionList" resultType="Map">
+		SELECT
+			  V_ORGANIZATION_LEVEL.BRANCH_ID          AS branch_id		<!-- 拠点Id -->
+			, V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID || ',' ||
+			  V_ORGANIZATION_LEVEL.CHILD_SECTION_ID   AS section_id		<!-- 店部課ID＋会社ID -->
+			, V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID || ' ' ||
+			  V_ORGANIZATION_LEVEL.CHILD_SECTION_ID || ' ' ||
+			  V_ORGANIZATION_LEVEL.CHILD_SECTION_NAME AS section_name	<!-- 店部課名 -->
+		FROM
+			V_ORGANIZATION_LEVEL V_ORGANIZATION_LEVEL
+		ORDER BY
+			V_ORGANIZATION_LEVEL.BRANCH_ID
+			, V_ORGANIZATION_LEVEL.CHILD_SECTION_ID
+			, V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID
+	</select>
+
+	<!-- 親・子店部課リスト取得 -->
+	<select id="getParentSectionList" resultType="Map">
+		SELECT
+			PARENT_COMPANY_ID || ',' || PARENT_SECTION_ID AS parent_id
+			,CHILD_COMPANY_ID || ',' || CHILD_SECTION_ID  AS child_id
+		FROM
+			V_ORGANIZATION_LEVEL
+		GROUP BY
+			PARENT_COMPANY_ID
+			, PARENT_SECTION_ID
+			, CHILD_COMPANY_ID
+			, CHILD_SECTION_ID
+		ORDER BY
+			PARENT_COMPANY_ID
+			, PARENT_SECTION_ID
+			, CHILD_COMPANY_ID
+			, CHILD_SECTION_ID
+	</select>
+
+	<!-- PickupGroupリスト取得 -->
+	<select id="getPickupGroupList" parameterType="Map" resultType="LabelValueModel">
+		SELECT
+			  PICKUP_GROUP.NO   AS LABEL		<!-- No -->
+			, PICKUP_GROUP.NAME AS VALUE		<!-- NAME -->
+		FROM
+			PICKUP_GROUP		<!-- ピックアップグループ -->
+		<where>
+			<if test="branchId != null and branchId != ''">
+				PICKUP_GROUP.BRANCH_ID = #{branchId}
+			</if>
+			<if test="sectionId != null and sectionId != ''">
+				AND PICKUP_GROUP.SECTION_ID = #{sectionId}
+			</if>
+		</where>
+		GROUP BY
+			  PICKUP_GROUP.NO			<!-- No -->
+			, PICKUP_GROUP.NAME		<!-- NAME -->
+		ORDER BY
+			  PICKUP_GROUP.NO
+			, PICKUP_GROUP.NAME
+	</select>
+
+	<!-- PickupGroupリスト取得（動的用） -->
+	<select id="getPickupGroupMstarList" resultType="Map">
+		SELECT
+			  PICKUP_GROUP.NO         AS no				<!-- No -->
+			, PICKUP_GROUP.NAME       AS name			<!-- NAME -->
+			, PICKUP_GROUP.BRANCH_ID  AS branch_id		<!-- 拠点Id -->
+			, PICKUP_GROUP.SECTION_ID AS section_id		<!-- 店部課Id -->
+		FROM
+			PICKUP_GROUP		<!-- ピックアップグループ -->
+		GROUP BY
+			  PICKUP_GROUP.NO				<!-- No -->
+			, PICKUP_GROUP.NAME				<!-- NAME -->
+			, PICKUP_GROUP.BRANCH_ID		<!-- 拠点Id -->
+			, PICKUP_GROUP.SECTION_ID		<!-- 店部課Id -->
+		ORDER BY
+			  PICKUP_GROUP.NO
+			, PICKUP_GROUP.NAME
+	</select>
+
+	<!-- 電話機リスト取得 -->
+	<select id="getTypeModelList" resultType="LabelValueModel">
+		SELECT
+			  TYPE_MODEL.NAME AS LABEL	<!-- NAME -->
+			, TYPE_MODEL.NAME AS VALUE	<!-- NAME -->
+		FROM
+			TYPE_MODEL TYPE_MODEL		<!-- 電話Template -->
+		GROUP BY
+			TYPE_MODEL.NAME <!-- NAME -->
+		ORDER BY
+			TYPE_MODEL.NAME
+	</select>
+
+	<!-- 電話機Templateリスト取得 -->
+	<select id="getPhoneTempleteList" parameterType="String" resultType="LabelValueModel">
+		SELECT
+			  PHONE_TEMPLATE.NAME AS LABEL	<!-- NAME -->
+			, PHONE_TEMPLATE.NAME AS VALUE	<!-- NAME -->
+		FROM
+			PHONE_TEMPLATE PHONE_TEMPLATE INNER JOIN TYPE_MODEL TYPE_MODEL
+			ON  PHONE_TEMPLATE.TYPE_MODEL_ENUM = TYPE_MODEL.TYPE_MODEL_ENUM
+		WHERE
+			TYPE_MODEL.NAME = #{typeModelName}
+		GROUP BY
+			PHONE_TEMPLATE.NAME	<!-- NAME -->
+		ORDER BY
+			PHONE_TEMPLATE.NAME
+	</select>
+
+	<!-- 電話機Templateリスト取得（動的用） -->
+	<select id="getPhoneTempleteMstarList" resultType="Map">
+		SELECT
+			  PHONE_TEMPLATE.NAME AS template_name	<!-- PHONE_TEMPLATE_NAME -->
+			, TYPE_MODEL.NAME     AS type_name		<!-- 電話機名 -->
+		FROM
+			PHONE_TEMPLATE PHONE_TEMPLATE INNER JOIN TYPE_MODEL TYPE_MODEL
+			ON  PHONE_TEMPLATE.TYPE_MODEL_ENUM = TYPE_MODEL.TYPE_MODEL_ENUM
+		GROUP BY
+			PHONE_TEMPLATE.NAME	 <!-- NAME -->
+			,TYPE_MODEL.NAME
+		ORDER BY
+			TYPE_MODEL.NAME
+			,PHONE_TEMPLATE.NAME
+
+	</select>
+
+	<!-- コーリングサーチスペースリスト取得（パターン全て取得） -->
+	<select id="getCallingSearchSpaceDynamicList" resultType="MAP" >
+		SELECT
+			CALLING_SEARCH_SPACE.NAME AS NAME
+			, SPLIT_PART(CALLING_SEARCH_SPACE.NAME, '_', 1) AS id_1
+			, SPLIT_PART(CALLING_SEARCH_SPACE.NAME, '_', 2) AS id_2
+			, SPLIT_PART(CALLING_SEARCH_SPACE.NAME, '_', 3) AS id_3
+			, NULL AS section_id
+		FROM
+			CALLING_SEARCH_SPACE
+		GROUP BY
+			CALLING_SEARCH_SPACE.NAME
+
+		UNION ALL
+
+		SELECT
+			NAME AS name
+			, ID_1 AS id_1
+			, ID_2 AS id_2
+			, ID_3 AS id_3
+			, V_ORGANIZATION_LEVEL.chiLD_COMPANY_ID || ',' || V_ORGANIZATION_LEVEL.CHILD_SECTION_ID AS section_id
+		FROM
+		(
+			SELECT
+			    CALLING_SEARCH_SPACE.NAME AS name,
+				SPLIT_PART(CALLING_SEARCH_SPACE.NAME, '_', 1) AS id_1,
+				SPLIT_PART(CALLING_SEARCH_SPACE.NAME, '_', 2) AS id_2,
+				SPLIT_PART(CALLING_SEARCH_SPACE.NAME, '_', 3) AS id_3
+			FROM
+				CALLING_SEARCH_SPACE
+			GROUP BY
+				CALLING_SEARCH_SPACE.NAME
+		) V_CSS INNER JOIN (
+			SELECT
+				V_ORGANIZATION_LEVEL.PARENT_SECTION_ID
+				, V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID
+				, V_ORGANIZATION_LEVEL.CHILD_SECTION_ID
+			FROM
+				V_ORGANIZATION_LEVEL
+			GROUP BY
+				V_ORGANIZATION_LEVEL.PARENT_SECTION_ID
+				, V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID
+				, V_ORGANIZATION_LEVEL.CHILD_SECTION_ID
+			)V_ORGANIZATION_LEVEL
+			ON V_CSS.ID_2 = V_ORGANIZATION_LEVEL.PARENT_SECTION_ID OR
+			   V_CSS.ID_3 = V_ORGANIZATION_LEVEL.PARENT_SECTION_ID
+		WHERE
+			V_ORGANIZATION_LEVEL.PARENT_SECTION_ID IS NOT NULL
+		ORDER BY
+			section_id,
+			name
+	</select>
+	
+<!-- クラスタリスト取得 -->
+	<select id="getClusterList" parameterType="string" resultType="LabelValueModel">
+		SELECT
+			  M_CLUSTER.CLUSTER_ID                             AS VALUE	<!-- クラスタID -->
+			, #{clusterLabel} || '_' || M_CLUSTER.CLUSTER_ID   AS LABEL	<!-- クラスタ名 -->
+		FROM
+			M_CLUSTER M_CLUSTER			<!-- クラスタマスタ -->
+		ORDER BY
+			M_CLUSTER.CLUSTER_ID
+	</select>
+
+	<!--############### 存在チェック ############### -->
+
+	<!-- 拠点存在チェック -->
+	<select id="branchExistCheck" parameterType="String" resultType="int">
+		SELECT
+		  COUNT(1) AS cnt
+		FROM
+		  M_BRANCH M_BRANCH
+		WHERE
+		  M_BRANCH.BRANCH_ID = #{branchId}
+	</select>
+
+	<!-- 店部課存在チェック -->
+	<select id="sectionExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			M_SECTION M_SECTION
+		<where>
+			M_SECTION.SECTION_ID = #{sectionId}
+			<if test="companyId != null and companyId != ''">
+				AND M_SECTION.COMPANY_ID = #{companyId}
+			</if>
+		</where>
+	</select>
+
+	<!-- 拠点と店部課の紐付き存在チェック -->
+	<select id="branchSectionExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			R_SECTION_BRANCH R_SECTION_BRANCH
+		<where>
+			R_SECTION_BRANCH.BRANCH_ID = #{branchId}
+			<if test="sectionId != null and sectionId != ''">
+				AND R_SECTION_BRANCH.SECTION_ID = #{sectionId}
+			</if>
+			<if test="companyId != null and companyId != ''">
+				AND R_SECTION_BRANCH.COMPANY_ID = #{companyId}
+			</if>
+		</where>
+	</select>
+
+
+	<!-- 電話機存在チェック -->
+	<select id="telExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			CUCM_PHONE CUCM_PHONE
+		WHERE
+			CUCM_PHONE.CUCM_PHONE_ID = #{telId}
+		AND CUCM_PHONE.DELETED       = #{COM_FLG_OFF}
+	</select>
+
+	<!-- MACアドレス存在チェック -->
+	<select id="macAddressExistCheck" parameterType="Map" resultType="int">
+		SELECT
+		  COUNT(1) AS cnt
+		FROM
+		  CUCM_PHONE CUCM_PHONE
+		WHERE
+		  CUCM_PHONE.MAC_ADDRESS = #{macAddress}
+	</select>
+
+	<!-- ユーザー存在チェック -->
+	<select id="userExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			APP_USER APP_USER
+		WHERE
+			APP_USER.APP_USER_ID = #{userId}
+		AND APP_USER.DELETED = #{COM_FLG_OFF}
+	</select>
+
+	<!-- Line存在チェック -->
+	<select id="lineExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			CUCM_LINE CUCM_LINE
+		WHERE
+			CUCM_LINE.CUCM_LINE_ID = #{lineId}
+		AND CUCM_LINE.DELETED = #{COM_FLG_OFF}
+	</select>
+
+	<!-- 内線番号存在チェック -->
+	<select id="directoryNumberExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			CUCM_LINE CUCM_LINE
+		WHERE
+			CUCM_LINE.DIRECTORY_NUMBER = #{directoryNumber}
+		AND CUCM_LINE.DELETED = #{COM_FLG_OFF}
+	</select>
+
+	<!-- Unity関連存在チェック -->
+	<select id="unityAssociationExistCheck" parameterType="BigDecimal" resultType="int">
+		SELECT
+		  COUNT(1) AS cnt
+		FROM
+		  UNITY_ASSOCIATION UNITY_ASSOCIATION
+		WHERE
+		  UNITY_ASSOCIATION.CUCM_PHONE_ID = #{telId}
+	</select>
+
+	<!-- ユーザーと店部課の紐付き存在チェック -->
+	<select id="userSectionExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			count(1) AS cnt
+		FROM
+			R_USER_SECTION R_USER_SECTION
+		WHERE
+			R_USER_SECTION.APP_USER_ID = #{userId}
+		AND R_USER_SECTION.COMPANY_ID  = #{companyId}
+		AND R_USER_SECTION.SECTION_ID  = #{sectionId}
+		AND R_USER_SECTION.DELETED     = #{COM_FLG_OFF}
+	</select>
+
+	<!-- ユーザーと電話の紐付き存在チェック -->
+	<select id="userTelExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+		<where>
+			<if test="userId != null and userId != ''">
+				R_CUCM_USER_PHONE.APP_USER_ID   = #{userId}
+			</if>
+			<if test="telId != null and telId != ''">
+				AND R_CUCM_USER_PHONE.CUCM_PHONE_ID = #{telId}
+			</if>
+			AND R_CUCM_USER_PHONE.DELETED       = #{COM_FLG_OFF}
+		</where>
+	</select>
+
+	<!-- ユーザーと電話の紐付き存在チェック -->
+	<select id="userTelSectionExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+		<where>
+			<if test="userId != null and userId != ''">
+				R_CUCM_USER_PHONE.APP_USER_ID   = #{userId}
+			</if>
+			<if test="telId != null and telId != ''">
+				AND R_CUCM_USER_PHONE.CUCM_PHONE_ID = #{telId}
+			</if>
+			<if test="companyId != null and companyId != ''">
+				AND R_CUCM_USER_PHONE.COMPANY_ID = #{companyId}
+			</if>
+			<if test="sectionId != null and sectionId != ''">
+				AND R_CUCM_USER_PHONE.SECTION_ID = #{sectionId}
+			</if>
+			AND R_CUCM_USER_PHONE.DELETED       = #{COM_FLG_OFF}
+		</where>
+	</select>
+
+	<!-- ユーザーと店部課の削除予約フラグ存在チェック -->
+	<select id="userSectionDeleteReserveExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			R_USER_SECTION R_USER_SECTION   <!-- ユーザー店部課 -->
+		WHERE
+			APP_USER_ID = #{userId}
+		AND R_USER_SECTION.DELETE_RESERVE = #{COM_FLG_ON}
+	</select>
+
+	<!-- DevicePool存在チェック -->
+	<select id="devicePoolExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS CNT
+		FROM
+			DEVICEPOOL DEVICEPOOL
+		WHERE
+			DEVICEPOOL.NAME = #{devicePoolName}
+		AND DEVICEPOOL.CLUSTER_ID = (
+			SELECT
+				M_BRANCH.CLUSTER_ID
+			FROM
+				M_BRANCH M_BRANCH
+			WHERE
+				M_BRANCH.BRANCH_ID = #{branchId}
+		)
+	</select>
+
+	<!-- CallingSearchSpaceName存在チェック -->
+	<select id="callingSearchSpaceExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			CALLING_SEARCH_SPACE CALLING_SEARCH_SPACE
+		WHERE
+			CALLING_SEARCH_SPACE.NAME = #{cssName}
+		AND CALLING_SEARCH_SPACE.CLUSTER_ID = (
+			SELECT
+				M_BRANCH.CLUSTER_ID
+			FROM
+				M_BRANCH M_BRANCH
+			WHERE
+				M_BRANCH.BRANCH_ID = #{branchId}
+		)
+	</select>
+
+	<!-- 電話機種の存在チェック -->
+	<select id="typeModelExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			TYPE_MODEL TYPE_MODEL
+		WHERE
+			TYPE_MODEL.NAME = #{typeModelName}
+		AND TYPE_MODEL.CLUSTER_ID = (
+			SELECT
+				M_BRANCH.CLUSTER_ID
+			FROM
+				M_BRANCH M_BRANCH
+			WHERE
+				M_BRANCH.BRANCH_ID = #{branchId}
+		)
+	</select>
+
+	<!-- ボタンテンプレート存在チェック -->
+	<select id="phoneTemplateExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			PHONE_TEMPLATE PHONE_TEMPLATE INNER JOIN TYPE_MODEL TYPE_MODEL
+				ON PHONE_TEMPLATE.TYPE_MODEL_ENUM = TYPE_MODEL.TYPE_MODEL_ENUM
+		WHERE
+			TYPE_MODEL.NAME = #{typeModelName}
+		AND PHONE_TEMPLATE.NAME = #{phoneTemplateName}
+		AND PHONE_TEMPLATE.CLUSTER_ID = (
+			SELECT
+				M_BRANCH.CLUSTER_ID
+			FROM
+				M_BRANCH M_BRANCH
+			WHERE
+				M_BRANCH.BRANCH_ID = #{branchId}
+		)
+	</select>
+
+	<!-- ロケーション存在チェック -->
+	<select id="locationExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			LOCATION LOCATION
+		WHERE
+			LOCATION.NAME = #{locationName}
+		AND LOCATION.CLUSTER_ID = (
+			SELECT
+				M_BRANCH.CLUSTER_ID
+			FROM
+				M_BRANCH M_BRANCH
+			WHERE
+				M_BRANCH.BRANCH_ID = #{branchId}
+		)
+	</select>
+
+	<!-- ピックアップグループ存在チェック -->
+	<select id="pickupGroupExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			PICKUP_GROUP PICKUP_GROUP
+		WHERE
+			PICKUP_GROUP.NAME = #{pickupGroupName}
+		AND PICKUP_GROUP.CLUSTER_ID = (
+			SELECT
+				M_BRANCH.CLUSTER_ID
+			FROM
+				M_BRANCH M_BRANCH
+			WHERE
+				M_BRANCH.BRANCH_ID = #{branchId}
+		)
+	</select>
+
+	<!-- TelDirData存在チェック -->
+	<select id="telDirAssociationExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			TEL_DIR_ASSOCIATION TEL_DIR_ASSOCIATION
+		<where>
+			<if test="telId != null and telId != ''">
+				TEL_DIR_ASSOCIATION.CUCM_PHONE_ID     = #{telId}
+			</if>
+			<if test="lineId != null and lineId != ''">
+				AND TEL_DIR_ASSOCIATION.CUCM_LINE_ID  = #{lineId}
+			</if>
+			<if test="userId != null and userId != ''">
+				AND TEL_DIR_ASSOCIATION.APP_USER_ID   = #{userId}
+			</if>
+			<if test="deleted != null and deleted != ''">
+				AND TEL_DIR_ASSOCIATION.deleted       = #{deleted}
+			</if>
+		</where>
+	</select>
+
+	<!-- TelDirData存在チェック（電話ユーザーに該当するラインの数を取得） -->
+	<select id="telDirAssociationExistEntryTelUserCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+		WHERE
+			CUCM_PHONE_ID = #{telId}
+		AND R_CUCM_PHONE_LINE.DELETED = #{deleted}
+		AND NOT EXISTS(
+			SELECT
+				1
+			FROM
+				TEL_DIR_ASSOCIATION TEL_DIR_ASSOCIATION
+			WHERE
+				TEL_DIR_ASSOCIATION.APP_USER_ID   = #{userId}
+			AND TEL_DIR_ASSOCIATION.CUCM_PHONE_ID = R_CUCM_PHONE_LINE.CUCM_PHONE_ID
+			AND TEL_DIR_ASSOCIATION.CUCM_LINE_ID  = R_CUCM_PHONE_LINE.CUCM_LINE_ID
+		)
+	</select>
+
+<!-- TelDirData存在チェック（電話ラインに該当するユーザーの数を取得） -->
+	<select id="telDirAssociationExistEntryTelLineCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+		WHERE
+			R_CUCM_USER_PHONE.CUCM_PHONE_ID = #{telId}
+		AND R_CUCM_USER_PHONE.DELETED       = #{deleted}
+		AND NOT EXISTS(
+			SELECT
+				1
+			FROM
+				TEL_DIR_ASSOCIATION TEL_DIR_ASSOCIATION
+			WHERE
+				TEL_DIR_ASSOCIATION.APP_USER_ID   = R_CUCM_USER_PHONE.APP_USER_ID
+			AND TEL_DIR_ASSOCIATION.CUCM_PHONE_ID = R_CUCM_USER_PHONE.CUCM_PHONE_ID
+			AND TEL_DIR_ASSOCIATION.CUCM_LINE_ID  = #{lineId}
+		)
+	</select>
+
+	<!-- ライン連番存在チェック -->
+	<select id="lineIndexExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+		WHERE
+			R_CUCM_PHONE_LINE.DELETED = #{COM_FLG_OFF}
+		AND R_CUCM_PHONE_LINE.CUCM_PHONE_ID = #{telId}
+		AND R_CUCM_PHONE_LINE.INDEX = #{lineIndex}
+		<if test=" orgLineIndex != null and orgLineIndex != '' ">
+			AND R_CUCM_PHONE_LINE.INDEX <![CDATA[<>]]> #{orgLineIndex}
+		</if>
+	</select>
+
+	<!-- 共用ユーザーチェック -->
+	<select id="telSharedUseCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			APP_USER APP_USER INNER JOIN R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+			ON APP_USER.APP_USER_ID = R_CUCM_USER_PHONE.APP_USER_ID
+		WHERE
+			APP_USER.ENABLED_SHARED_USE = #{sharedUse}
+		AND R_CUCM_USER_PHONE.CUCM_PHONE_ID = #{telId}
+	</select>
+
+	<!-- 電話ライン紐付存在きチェック -->
+	<select id="telLineExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+		WHERE
+			R_CUCM_PHONE_LINE.DELETED = #{COM_FLG_OFF}
+		<if test=" telId != null and telId != '' ">
+			AND R_CUCM_PHONE_LINE.CUCM_PHONE_ID = #{telId}
+		</if>
+		<if test=" lineId != null and lineId != '' ">
+			AND R_CUCM_PHONE_LINE.CUCM_LINE_ID = #{lineId}
+		</if>
+		<if test=" lineIndex != null and lineIndex != '' ">
+			AND R_CUCM_PHONE_LINE.INDEX = #{lineIndex}
+		</if>
+		<if test=" directoryNumber != null and directoryNumber != '' ">
+			AND EXISTS (
+					SELECT
+						1
+					FROM
+						CUCM_LINE
+					WHERE
+						CUCM_LINE.DIRECTORY_NUMBER = #{directoryNumber}
+					AND CUCM_LINE.DELETED = #{COM_FLG_OFF}
+					AND CUCM_LINE.CUCM_LINE_ID = R_CUCM_PHONE_LINE.CUCM_LINE_ID
+				)
+		</if>
+	</select>
+
+	<!-- 電話機に該当するラインのシェアードチェック -->
+	<select id="telSharedLineCheck" parameterType="Map" resultType="int">
+		SELECT
+			MAX(V_CNT.CNT)
+		FROM
+			(
+			SELECT
+				  R_CUCM_PHONE_LINE.CUCM_LINE_ID
+				, COUNT(1) AS CNT
+			FROM
+				R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+			WHERE
+				EXISTS (
+					SELECT
+						  1
+					FROM
+						R_CUCM_PHONE_LINE V_CUCM_PHONE_LINE
+					WHERE
+						V_CUCM_PHONE_LINE.DELETED = #{COM_FLG_OFF}
+					AND V_CUCM_PHONE_LINE.CUCM_PHONE_ID = #{telId}
+					AND V_CUCM_PHONE_LINE.CUCM_LINE_ID = R_CUCM_PHONE_LINE.CUCM_LINE_ID
+				)
+			GROUP BY
+				R_CUCM_PHONE_LINE.CUCM_LINE_ID
+			) V_CNT
+	</select>
+
+	<!--############### その他 ############### -->
+
+	<!-- ユーザーに紐づく内線番号を取得 -->
+	<select id="getTelephoneNumber" parameterType="Map" resultType="String">
+		SELECT
+			DIRECTORY_NUMBER AS directoryNumber
+		FROM
+			CUCM_LINE CUCM_LINE <!-- ライン -->
+				INNER JOIN R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE		<!-- 電話－ライン -->
+			ON CUCM_LINE.CUCM_LINE_ID          = R_CUCM_PHONE_LINE.CUCM_LINE_ID
+				INNER JOIN CUCM_PHONE CUCM_PHONE					<!-- 電話 -->
+			ON R_CUCM_PHONE_LINE.CUCM_PHONE_ID =  CUCM_PHONE.CUCM_PHONE_ID
+				INNER JOIN R_CUCM_USER_PHONE R_CUCM_USER_PHONE		<!-- ユーザー－電話 -->
+			ON CUCM_PHONE.CUCM_PHONE_ID       = R_CUCM_USER_PHONE.CUCM_PHONE_ID
+		WHERE
+			CUCM_LINE.DELETED               = #{COM_FLG_OFF}
+		AND R_CUCM_PHONE_LINE.DELETED       = #{COM_FLG_OFF}
+		AND R_CUCM_USER_PHONE.DELETED       = #{COM_FLG_OFF}
+		AND CUCM_PHONE.DELETED              = #{COM_FLG_OFF}
+		AND R_CUCM_USER_PHONE.APP_USER_ID   = #{userId}
+		ORDER BY
+			CUCM_PHONE.CUCM_PHONE_ID
+			, R_CUCM_PHONE_LINE.INDEX
+		LIMIT 1 OFFSET 0
+	</select>
+
+	<!-- ラインIDの取得 -->
+	<select id="getLineId" parameterType="String" resultType="BigDecimal">
+		SELECT
+			CUCM_LINE.CUCM_LINE_ID AS lineId
+		FROM
+			CUCM_LINE CUCM_LINE
+		WHERE
+			CUCM_LINE.DIRECTORY_NUMBER = #{directoryNumber}
+	</select>
+
+	<!-- ラインの削除フラグを取得 -->
+	<select id="getLineDeleteFlg" parameterType="String" resultType="Map">
+		SELECT
+			CUCM_LINE.CUCM_LINE_ID AS "lineId"
+			, CUCM_LINE.DELETED    AS "deleted"
+			, CUCM_LINE.USE_VM_FLG AS "vmFlg"
+		FROM
+			CUCM_LINE CUCM_LINE
+		WHERE
+			CUCM_LINE.DIRECTORY_NUMBER = #{directoryNumber}
+	</select>
+
+	<!-- 電話機のCSSの取得(条件はライン) -->
+	<select id="getCssConditionsLine" parameterType="Map" resultType="String">
+		SELECT
+			V_TEL_LINE.CALLING_SEARCH_SPACE_NAME AS css	<!-- CSS -->
+		FROM
+			(SELECT
+				R_CUCM_PHONE_LINE.CUCM_LINE_ID			<!-- ラインID -->
+				,CUCM_PHONE.CALLING_SEARCH_SPACE_NAME	<!-- CSS -->
+				, ROW_NUMBER() OVER (
+					PARTITION BY R_CUCM_PHONE_LINE.CUCM_LINE_ID
+						ORDER BY R_CUCM_PHONE_LINE.INDEX, CUCM_PHONE.CUCM_PHONE_ID) AS ROW_NUM
+			FROM
+				R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE 	<!-- 電話－ライン -->
+				INNER JOIN CUCM_PHONE CUCM_PHONE		<!-- 電話 -->
+					ON R_CUCM_PHONE_LINE.CUCM_PHONE_ID = CUCM_PHONE.CUCM_PHONE_ID
+			WHERE
+				R_CUCM_PHONE_LINE.DELETED = #{deleted}
+			AND CUCM_PHONE.DELETED        = #{deleted}
+			) V_TEL_LINE
+		WHERE
+			V_TEL_LINE.ROW_NUM = 1
+		AND V_TEL_LINE.CUCM_LINE_ID = #{lineId}
+	</select>
+
+	<!-- 電話機に紐付くラインを取得 -->
+	<select id="getLineLinkedTel" parameterType="Map" resultType="Map">
+		SELECT
+			CUCM_LINE_ID   AS "lineId"
+			, INDEX        AS "lineIndex"
+		FROM
+			R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+		WHERE
+			R_CUCM_PHONE_LINE.CUCM_PHONE_ID = #{telId}
+		AND R_CUCM_PHONE_LINE.DELETED       = #{deleted}
+	</select>
+
+<!-- 電話機に紐付くユーザーを取得 -->
+	<select id="getUserLinkedTel" parameterType="Map" resultType="Map">
+		SELECT
+			R_CUCM_USER_PHONE.APP_USER_ID AS "userId"
+			, APP_USER.ENABLED_SHARED_USE AS "sharedUse"
+		FROM
+			R_CUCM_USER_PHONE R_CUCM_USER_PHONE INNER JOIN APP_USER APP_USER
+				ON R_CUCM_USER_PHONE.APP_USER_ID = APP_USER.APP_USER_ID
+		WHERE
+			CUCM_PHONE_ID             = #{telId}
+		AND R_CUCM_USER_PHONE.DELETED = #{deleted}
+	</select>
+
+	<!-- 話中転送先階層の取得 -->
+	<select id="getBusyDestinationClass" parameterType="Map" resultType="String">
+		WITH RECURSIVE V_BUSYDESTINATION(
+							BUSYDESTINATION
+							, SOCIALSTRATUM) AS(
+			SELECT
+				#{directoryNumber}  	<!-- 内線番号 -->
+				, ''					<!-- 階層 -->
+			UNION ALL
+			SELECT
+				CUCM_LINE.FWD_BUSY_DESTINATION		<!-- 話中転送 -->
+				, V_BUSYDESTINATION.SOCIALSTRATUM || ',' ||
+				  V_BUSYDESTINATION.BUSYDESTINATION
+			FROM
+				CUCM_LINE
+				, V_BUSYDESTINATION
+			WHERE
+				CUCM_LINE.DIRECTORY_NUMBER = V_BUSYDESTINATION.BUSYDESTINATION
+			AND CUCM_LINE.FWD_BUSY_DESTINATION IS NOT NULL
+			AND V_BUSYDESTINATION.SOCIALSTRATUM NOT LIKE '%' || V_BUSYDESTINATION.BUSYDESTINATION || '%'
+			AND CUCM_LINE.DELETED = #{COM_FLG_OFF}
+		)
+		SELECT
+			SUBSTR(BUSYDESTINATION,LENGTH(BUSYDESTINATION)-3) AS  busyDestination
+		FROM
+			V_BUSYDESTINATION
+		<if test="displayNumber != 0">
+			OFFSET 0 LIMIT ${displayNumber}
+		</if>
+	</select>
+
+	<!-- 話中転送先階層の取得（逆階層） -->
+	<select id="getBusyDestinationReverseClass"  parameterType="Map" resultType="String">
+		WITH RECURSIVE V_BUSYDESTINATION(
+							DIRECTORYNUMBER
+							, SOCIALSTRATUM) AS(
+			SELECT
+				 #{directoryNumber}  	<!-- 内線番号 -->
+				, ''					<!-- 階層 -->
+			UNION ALL
+			SELECT
+				 CUCM_LINE.DIRECTORY_NUMBER
+				, V_BUSYDESTINATION.SOCIALSTRATUM || ',' ||
+				  V_BUSYDESTINATION.DIRECTORYNUMBER
+			FROM
+				CUCM_LINE
+				, V_BUSYDESTINATION
+			WHERE
+				CUCM_LINE.FWD_BUSY_DESTINATION = V_BUSYDESTINATION.DIRECTORYNUMBER
+			AND CUCM_LINE.FWD_BUSY_DESTINATION IS NOT NULL
+			AND V_BUSYDESTINATION.SOCIALSTRATUM NOT LIKE '%' || V_BUSYDESTINATION.DIRECTORYNUMBER || '%'
+			AND CUCM_LINE.DELETED = #{COM_FLG_OFF}
+		)
+		SELECT
+			SUBSTR(DIRECTORYNUMBER,LENGTH(DIRECTORYNUMBER)-3) AS  BUSYDESTINATION
+		FROM
+			V_BUSYDESTINATION
+		WHERE
+			V_BUSYDESTINATION.DIRECTORYNUMBER IS NOT NULL
+		<if test="displayNumber != 0">
+			OFFSET 0 LIMIT ${displayNumber}
+		</if>
+	</select>
+
+	<!-- ラインに紐づく電話の拠点を取得 -->
+	<select id="getSharedLineBranch" parameterType="Map" resultType="String">
+		SELECT
+			CUCM_PHONE.BRANCH_ID
+		FROM
+			R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE INNER JOIN CUCM_PHONE CUCM_PHONE
+				ON R_CUCM_PHONE_LINE.CUCM_PHONE_ID = CUCM_PHONE.CUCM_PHONE_ID
+			INNER JOIN CUCM_LINE CUCM_LINE
+				ON R_CUCM_PHONE_LINE.CUCM_LINE_ID = CUCM_LINE.CUCM_LINE_ID
+		WHERE
+			R_CUCM_PHONE_LINE.DELETED      = #{deleted}
+		AND CUCM_PHONE.DELETED             = #{deleted}
+		AND CUCM_LINE.DELETED              = #{deleted}
+		<if test="lineId != null and lineId != ''">
+			AND R_CUCM_PHONE_LINE.CUCM_LINE_ID = #{lineId}
+		</if>
+		<if test="directoryNumber != null and directoryNumber != ''">
+			AND CUCM_LINE.DIRECTORY_NUMBER = #{directoryNumber}
+		</if>
+		GROUP BY
+			CUCM_PHONE.BRANCH_ID
+	</select>
+
+	<!-- 内線番号に紐づく電話の拠点を取得 -->
+	<select id="getSharedLineBranchDirNum" parameterType="Map" resultType="String">
+		SELECT
+			CUCM_PHONE.BRANCH_ID
+		FROM
+			CUCM_LINE CUCM_LINE INNER JOIN R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+				ON  CUCM_LINE.CUCM_LINE_ID = R_CUCM_PHONE_LINE.CUCM_LINE_ID
+				AND R_CUCM_PHONE_LINE.DELETED = #{deleted}
+			INNER JOIN CUCM_PHONE CUCM_PHONE
+				ON  R_CUCM_PHONE_LINE.CUCM_PHONE_ID  = CUCM_PHONE.CUCM_PHONE_ID
+				AND CUCM_PHONE.DELETED = #{deleted}
+		WHERE
+			CUCM_LINE.DIRECTORY_NUMBER = #{directoryNumber}
+		GROUP BY
+			CUCM_PHONE.BRANCH_ID
+	</select>
+
+	<!-- 転送先のライン情報取得 -->
+	<select id="getBusyDestinationInfo" parameterType="Map" resultType="Map">
+		SELECT
+			CUCM_LINE_ID  AS "lineId"
+			, DIRECTORY_NUMBER AS "directoryNumber"
+			, USE_VM_FLG AS "vmFlg"
+		FROM
+			CUCM_LINE CUCM_LINE
+		WHERE
+			CUCM_LINE.DIRECTORY_NUMBER = #{directoryNumber}
+		AND CUCM_LINE.DELETED = #{COM_FLG_OFF}
+	</select>
+
+	<!-- パスワード有効チェック -->
+	<select id="checkPasswordLifetime" parameterType="Map" resultType="Boolean">
+		SELECT
+			(CAST(LAST_PASSWORD_UPDATETIME AS DATE) + CAST(#{expirationDate} || 'DAYS' AS INTERVAL))
+			 > CURRENT_DATE
+		FROM
+			APP_USER APP_USER
+		WHERE
+			APP_USER.APP_USER_ID = #{userId}
+	</select>
+
+	<!-- クラスターIDの取得 -->
+	<select id="getClusterId" parameterType="String" resultType="BigDecimal">
+		SELECT
+			CLUSTER_ID AS clusterId
+		FROM
+			M_BRANCH M_BRANCH
+		WHERE
+			BRANCH_ID = #{branchId}
+	</select>
+
+	<!-- ユーザの最大値店部課値の取得 -->
+	<select id="getMaxUserSection" parameterType="Map" resultType="Map">
+		SELECT
+			APP_USER.APP_USER_ID             AS "userId"
+			, APP_USER.NAME_KANJI            AS "userKanjiName"
+			, R_USER_SECTION.SECTION_ID      AS "sectionId"
+			, MAX(R_USER_SECTION.COMPANY_ID) AS "companyId"
+			, CASE
+				WHEN V_USER_SECTION.CNT > 1 THEN #{COM_FLG_ON}
+				ELSE #{COM_FLG_OFF}
+			 END AS "concurrentlyFlg"
+		FROM
+			APP_USER APP_USER INNER JOIN R_USER_SECTION R_USER_SECTION
+				ON APP_USER.APP_USER_ID = R_USER_SECTION.APP_USER_ID
+			INNER JOIN (
+				SELECT
+					COUNT(1) AS CNT
+					, CNT_SECTION.APP_USER_ID AS APP_USER_ID
+				FROM
+					R_USER_SECTION CNT_SECTION INNER JOIN APP_USER CNT_USER
+					ON CNT_SECTION.APP_USER_ID = CNT_USER.APP_USER_ID
+				WHERE
+					CNT_SECTION.DELETED        = #{deleted}
+				AND CNT_SECTION.DELETE_RESERVE = #{deleted}
+				AND CNT_USER.CUCM_LOGIN_ID     = #{cucmLoginId}
+				GROUP BY
+					CNT_SECTION.APP_USER_ID
+			) V_USER_SECTION
+				ON R_USER_SECTION.APP_USER_ID = V_USER_SECTION.APP_USER_ID
+		WHERE
+			R_USER_SECTION.SECTION_ID = (
+				SELECT
+					MAX(MAX_USER_SECTION.SECTION_ID)
+				FROM
+					R_USER_SECTION MAX_USER_SECTION
+				WHERE
+					MAX_USER_SECTION.APP_USER_ID = R_USER_SECTION.APP_USER_ID
+				AND MAX_USER_SECTION.DELETED = #{deleted}
+				AND MAX_USER_SECTION.DELETED = #{deleted}
+				AND MAX_USER_SECTION.DELETE_RESERVE = #{deleted}
+			)
+			AND APP_USER.DELETED = #{deleted}
+			AND R_USER_SECTION.DELETED = #{deleted}
+			AND R_USER_SECTION.DELETE_RESERVE = #{deleted}
+		GROUP BY
+			APP_USER.APP_USER_ID
+			, APP_USER.NAME_KANJI
+			, R_USER_SECTION.SECTION_ID
+			, V_USER_SECTION.CNT
+	</select>
+
+
+</mapper>	

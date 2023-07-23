@@ -1,0 +1,16 @@
+  End With
+
+End Sub
+
+
+        '各列幅を設定するメソッド
+Sub Columns_width()
+
+       Columns("A:B").ColumnWidth = 4.38
+       Columns("B:C").ColumnWidth = 21.88
+       Columns("C:D").ColumnWidth = 29.25
+       Columns("D:E").ColumnWidth = 13.63
+       Columns("E:H").ColumnWidth = 10
+       Columns("H:L").ColumnWidth = 9.25
+        
+End Sub

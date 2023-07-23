@@ -1,0 +1,19 @@
+局面			詳細設計						クライアント名／プロジェクト名							SMBC日興/IP電話EOL											頁		
+機能名			CUCMメンテナンスシステム																			作成日			2023/04/01		作成者		PISE 髙田
+資料名			REL_電話機-ライン																			更新日					更新者		
+エンティティ一覧へ				ER図へ		CRUD図(オンライン)へ				CRUD図(バッチ)へ																			
+テーブル名称					REL_電話機-ライン												データベース名						irdb				スキーマ名		public
+テーブルID					rel_cucm_phone_line												レコードサイズ										文字コード		Shift-JIS
+																													
+NO	Key	項目論理名						項目物理名									データ型		桁数	NULL	UNIQUE	初期値		増分	上限値	サイクル	備考		
+1	PK	電話ID						phone_id									INTEGER												
+2	PK	LINEID						line_id									INTEGER												
+3	PK	連番						no									INTEGER												
+4		テキストラベル						line_txt_label									VARCHAR		10	〇									
+5		外線通知番号						external_phone_no_mask									VARCHAR		100	〇									
+6		鳴動設定名						ring_setting_nm									VARCHAR		18	〇									
+7		ダイアルイン						dialin									VARCHAR		24	〇									
+8		備考						remarks									TEXT			〇							画面表示項目の「備考（電話機/内線番号）」		
+9		削除フラグ						delete_flg									VARCHAR		1			0					0：未削除、1：削除済		
+10		作成日時						create_date									TIMESTAMP					現在日時							
+11		更新日時						update_date									TIMESTAMP					現在日時						

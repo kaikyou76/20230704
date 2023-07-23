@@ -1,0 +1,183 @@
+<h1 style="margin-bottom: 0">【一覧項目説明】</h1>
+<table class="help" style="margin-left: 5px;">
+	<tr>
+		<td width="97"  scope="row" >反映チェック</td>
+		<td width="525"  valign="top">個別反映をする場合は、チェックボックスにチェックを入れてください。</td>
+	</tr>
+	<tr>
+		<td height="43" scope="row">ステータス</td>
+		<td  valign="top">「反映待」：CallManager（サーバー）へ未反映の状態<br>
+		「反映済」：CallManager（サーバー）へ反映済の状態<br>
+		「エラー」：CallManager（サーバー）へ反映した結果、エラーとなった状態<br>
+		「　　　」：夜間バッチによりCallManager（サーバー）へ反映済の状態</td>
+	</tr>
+	<tr>
+		<td scope="row">内線番号</td>
+		<td  valign="top">8+拠点番号+内線番号の下4桁</td>
+	</tr>
+	<tr>
+		<td scope="row">ダイヤルイン</td>
+		<td  valign="top">市外局番-市内局番-内線番号の下4桁</td>
+	</tr>
+	<tr>
+		<td scope="row">番号</td>
+		<td  valign="top">内線番号のライン番号</td>
+	</tr>
+	<tr>
+		<td scope="row">ユーザー名</td>
+		<td  valign="top">IP電話機を利用しているユーザー名</td>
+	</tr>
+	<tr>
+		<td scope="row" height="43">所属店部課<br>
+		(ユーザー)
+		</td>
+		<td  valign="middle">「会社コード　子店部課コード　店部課名」で表示されます。</td>
+	</tr>
+	<tr>
+		<td scope="row">Pickup Group </td>
+		<td  valign="top">ピックアップグループを設定する場合は、グループ番号を選択してください。</td>
+	</tr>
+	<tr>
+		<td scope="row">VM使用</td>
+		<td  valign="top">ボイスメールを利用する場合は、チェックボックスにチェックを入れてください。<br>
+		ボイスメールを利用する場合は、他の電話機からの話中転送先に設定することは出来ません。</td>
+	</tr>
+	<tr>
+		<td scope="row">話中転送先</td>
+		<td  valign="top">話中に自動転送をする場合は、話中転送先の内線番号を入力してください。<br>
+		【ご注意】<br>
+		・ボイスメールを利用している電話機を、話中転送先に設定することは出来ません。　
+		</td>
+	</tr>
+	<tr>
+		<td scope="row">課金先</td>
+		<td  valign="top">「拠点コード-部コード-課コード」で表示されます。<br>
+		課金先を変更する場合は、電子申請フォーム「03.IP電話 設定変更申請」よりご申請ください。</td>
+	</tr>
+	<tr>
+		<td scope="row">備考(課金先)</td>
+		<td  valign="top">課金先についての備考欄</td>
+	</tr>
+	<tr>
+		<td scope="row">通話録音</td>
+		<td  valign="top"><p style="margin-top: 0; margin-bottom: 0">「なし」：通話録音をしない場合<br>
+		「全録」：全通話録音を規程とする場合</p>
+		</td>
+	</tr>
+	<tr>
+		<td scope="row">電話帳</td>
+		<td  valign="top">電子電話帳に反映したい場合は、チェックボックスにチェックを入れてください。<br>
+		※翌日以降は画面上のチェックが外れますので、電子電話帳から確認を行ってください。</td>
+	</tr>
+	<tr>
+		<td scope="row">電話機</td>
+		<td  valign="top">IP電話機の機種名</td>
+	</tr>
+	<tr>
+		<td scope="row">MacAddress</td>
+		<td  valign="top">IP電話機の固有のID番号</td>
+	</tr>
+	<tr>
+		<td scope="row">PhoneButton<br>
+		Template</td>
+		<td  valign="top">IP電話機に設定されているPhoneButtonTemplate名<br>
+		※設定したいPhoneButtonTemplateを選択してください。
+		</td>
+	</tr>
+	<tr>
+		<td scope="row">拠点<br>
+		(電話機)</td>
+		<td  valign="top">「会社コード　拠点コード　拠点名(クラスタID)」で表示されます。<br>
+		※設定したい拠点を選択してください。
+		</td>
+	</tr>
+	<tr>
+		<td scope="row">所属店部課<br>
+		(電話機)</td>
+		<td  valign="top">「会社コード　子店部課コード　店部課名」で表示されます。<br>
+		※設定したい所属店部課を選択してください。
+		</td>
+	</tr>
+	<tr>
+		<td scope="row">CSS</td>
+		<td  valign="top">「拠点コード_親店部課コード_発信クラス」で表示されます。<br>
+		※設定したいCalling Search Spaceを選択してください。
+		</td>
+	</tr>
+	<tr>
+		<td scope="row">拡張モジュール1<br>
+		設定</td>
+		<td  valign="top">拡張モジュールを設定する場合は、選択してください。<br>
+		【ご注意】<br>
+		１．電話機種「Cisco 7960」、「Cisco 7962」でのみ設定可能です。　
+		</td>
+	</tr>
+	<tr>
+		<td scope="row">拡張モジュール2<br
+		>設定</td>
+		<td  valign="top">拡張モジュールを設定する場合は、選択してください。<br>
+		【ご注意】<br>
+		１．電話機種「Cisco 7960」、「Cisco 7962」でのみ設定可能です。<br>
+		２．拡張モジュール1を設定済みの場合のみ、設定可能です。
+		</td>
+	</tr>
+	<tr>
+		<td scope="row">鳴動設定</td>
+		<td  valign="top">鳴動設定をする場合は、選択してください。</td>
+	</tr>
+	<tr>
+		<td scope="row">備考(電話機/内線番号)</td>
+		<td  valign="middle">電話機と内線番号についての備考欄</td>
+	</tr>
+	<tr>
+		<td scope="row">Line Text Label</td>
+		<td  valign="top">Line Text Labelを設定する場合は、入力してください。</td>
+	</tr>
+	<tr>
+		<td scope="row">不応答転送</td>
+		<td  valign="middle">不応答時に自動転送をする場合は、不応答転送先の内線番号を入力してください。</td>
+	</tr>
+	<tr>
+		<td scope="row">External Phone <br>
+		Number</td>
+		<td  valign="middle">External Phone Numberを設定する場合は、入力してください。</td>
+	</tr>
+</table>
+<br/>
+<p style="margin-top: 0; margin-bottom: 0">
+	<strong>【表の背景色凡例】</strong>
+</p>
+<table class="help" style="margin-left: 5px;">
+	<tr valign="top">
+		<td width="97"  valign="top" bgcolor="#FFFF7F">&nbsp;</td>
+		<td width="525">一般的な紐付け</td>
+	</tr>
+	<tr valign="top">
+		<td  valign="top" bgcolor="#C0C0C0">&nbsp;</td>
+		<td>共有ユーザー（複数の人が同じ電話番号の電話機を利用する）</td>
+	</tr>
+	<tr valign="top">
+		<td  valign="top" bgcolor="#7FFF7F">&nbsp;</td>
+		<td>シェアードライン（一人の人が同じ電話番号で複数の電話機を利用する）</td>
+	</tr>
+	<tr valign="top">
+		<td  valign="top" bgcolor="#FFCFA7">&nbsp;</td>
+		<td>マルチライン（一つの電話が複数のLineを保有する）</td>
+	</tr>
+	<tr valign="top">
+		<td  valign="top" bgcolor="#7FBFFF">&nbsp;</td>
+		<td>マルチデバイス（一人の人が複数の電話番号で複数の電話機を利用する）</td>
+	</tr>
+	<tr valign="top">
+		<td  valign="top" bgcolor="#7FFFFF">&nbsp;</td>
+		<td>共用電話（会議室、受付、カウンター等の電話）</td>
+	</tr>
+	<tr valign="top">
+		<td  valign="top" bgcolor="#D5B6FF">&nbsp;</td>
+		<td>電話機と紐付いていない利用者</td>
+	</tr>
+	<tr valign="top">
+		<td  valign="top" bgcolor="#FFB6FF">&nbsp;</td>
+		<td>部内在庫電話機</td>
+	</tr>
+</table>
