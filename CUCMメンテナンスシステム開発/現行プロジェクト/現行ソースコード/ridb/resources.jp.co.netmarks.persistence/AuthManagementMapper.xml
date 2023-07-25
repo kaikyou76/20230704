@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.AuthManagementMapper">
+
+	<!-- 管理権限付与者一覧検索用 -->
+	<sql id="selectAuthManagementList">
+	<![CDATA[
+		SELECT
+			APP_USER.APP_USER_ID              AS userId
+			,APP_USER.BIZ_EMPLOYEE_ID         AS employeeId
+			,APP_USER.NAME_KANJI              AS kanjiUserName
+			,APP_USER.USER_ROLE               AS authId
+			,CASE
+				WHEN APP_USER.USER_ROLE = #{constants.ROLE_DIV_NOTHING}
+				THEN #{constants.ROLE_NOTHING_NAME}
+				WHEN APP_USER.USER_ROLE = #{constants.ROLE_DIV_USER}
+				THEN #{constants.ROLE_USER_NAME}
+				WHEN APP_USER.USER_ROLE = #{constants.ROLE_DIV_CHANGE}
+				THEN #{constants.ROLE_CHANGE_NAME}
+				WHEN APP_USER.USER_ROLE = #{constants.ROLE_DIV_ADMIN}
+				THEN #{constants.ROLE_ADMIN_NAME}
+			END                               AS authName
+			,CASE
+				WHEN app_user.account_lock = #{constants.LOCK_STATE_NORMAL} THEN #{constants.LOCK_STATE_NORMAL_LABEL}
+																			ELSE #{constants.LOCK_STATE_LOCKED_LABEL}
+			END                               AS lockStateName
+			,V_ORGANIZATION_LEVEL.BRANCH_NAME AS branchName
+			,V_ORGANIZATION_LEVEL.BRANCH_ID   AS branchUserId
+			,V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID || ','
+				|| V_ORGANIZATION_LEVEL.CHILD_SECTION_ID AS sectionUserId
+			,R_USER_SECTION.SECTION_NAME      AS sectionUserName
+			, ARRAY_TO_STRING(
+		   		ARRAY(
+					SELECT
+						V_ORGANIZATION_LEVEL.BRANCH_NAME
+					FROM
+						V_ORGANIZATION_LEVEL V_ORGANIZATION_LEVEL
+					WHERE
+						V_ORGANIZATION_LEVEL.CHILD_SECTION_ID = R_USER_SECTION.SECTION_ID
+					AND  V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID = R_USER_SECTION.COMPANY_ID
+				), CHR(13)
+			) AS branchUserName
+			, ROW_NUMBER() OVER (ORDER BY ${sort} ${order}) AS ROW_NUMBER
+		FROM
+			APP_USER APP_USER
+		INNER JOIN
+			R_USER_SECTION R_USER_SECTION
+		ON APP_USER.APP_USER_ID=R_USER_SECTION.APP_USER_ID
+		INNER JOIN
+			V_ORGANIZATION_LEVEL
+		ON R_USER_SECTION.COMPANY_ID=V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID
+		AND R_USER_SECTION.SECTION_ID=V_ORGANIZATION_LEVEL.CHILD_SECTION_ID
+		WHERE
+			APP_USER.USER_ROLE                   <> #{constants.ROLE_DIV_NOTHING}
+		AND APP_USER.ENABLED_SHARED_USE           = #{constants.ENABLED_SHARED_USE_PRIVATE}
+		AND APP_USER.DELETED                      = #{constants.COM_FLG_OFF}
+		AND R_USER_SECTION.DELETED                = #{constants.COM_FLG_OFF}
+		AND V_ORGANIZATION_LEVEL.BRANCH_ID        = #{branchUserId}
+		AND V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID = #{companyUserId}
+		AND V_ORGANIZATION_LEVEL.CHILD_SECTION_ID = #{sectionUserId}
+		]]>
+	</sql>
+
+	<!-- 管理権限付与者一覧取得 -->
+	<select id="getAuthManagementList" parameterType="AuthManagementModel" resultType="AuthManagementResultModel">
+		SELECT
+			 v_info.userId              AS userId
+			,v_info.employeeId         AS employeeId
+			,v_info.kanjiUserName      AS kanjiUserName
+			,v_info.authId             AS authId
+			,v_info.authName           AS authName
+			,v_info.lockStateName      AS lockStateName
+			,v_info.branchName         AS branchName
+			,v_info.branchUserId       AS branchUserId
+			,v_info.sectionUserId      AS sectionUserId
+			,v_info.sectionUserName    AS sectionUserName
+			,v_info.branchUserName     AS branchUserName
+		FROM
+			(
+				<include refid="selectAuthManagementList"/>
+			) v_info
+		WHERE
+			v_info.ROW_NUMBER BETWEEN #{start} AND #{end}
+	</select>
+
+	<!-- 管理権限付与者一覧件数取得 -->
+	<select id="getAuthManagementListTotal" parameterType="AuthManagementModel" resultType="int">
+		<![CDATA[
+		SELECT
+			COUNT(1)
+		FROM
+			APP_USER APP_USER
+		INNER JOIN
+			R_USER_SECTION R_USER_SECTION
+		ON APP_USER.APP_USER_ID=R_USER_SECTION.APP_USER_ID
+		INNER JOIN
+			V_ORGANIZATION_LEVEL
+		ON R_USER_SECTION.COMPANY_ID=V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID
+		AND R_USER_SECTION.SECTION_ID=V_ORGANIZATION_LEVEL.CHILD_SECTION_ID
+		WHERE
+			APP_USER.USER_ROLE                   <> #{constants.ROLE_DIV_NOTHING}
+		AND APP_USER.ENABLED_SHARED_USE           = #{constants.ENABLED_SHARED_USE_PRIVATE}
+		AND APP_USER.DELETED                      = #{constants.COM_FLG_OFF}
+		AND R_USER_SECTION.DELETED                = #{constants.COM_FLG_OFF}
+		AND V_ORGANIZATION_LEVEL.BRANCH_ID        = #{branchUserId}
+		AND V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID = #{companyUserId}
+		AND V_ORGANIZATION_LEVEL.CHILD_SECTION_ID = #{sectionUserId}
+		]]>
+	</select>
+
+	<!-- 管理権限付与対象者一覧検索用 -->
+	<sql id="selectAuthManagementTargetList">
+		SELECT
+			APP_USER.APP_USER_ID              AS userId
+			,APP_USER.BIZ_EMPLOYEE_ID         AS employeeId
+			,APP_USER.NAME_KANJI              AS kanjiUserName
+			,APP_USER.USER_ROLE               AS authId
+			,CASE
+				WHEN APP_USER.USER_ROLE = #{constants.ROLE_DIV_NOTHING}
+				THEN #{constants.ROLE_NOTHING_NAME}
+				WHEN APP_USER.USER_ROLE = #{constants.ROLE_DIV_USER}
+				THEN #{constants.ROLE_USER_NAME}
+				WHEN APP_USER.USER_ROLE = #{constants.ROLE_DIV_ADMIN}
+				THEN #{constants.ROLE_ADMIN_NAME}
+			END                               AS authName
+			,V_ORGANIZATION_LEVEL.BRANCH_NAME AS branchName
+			,V_ORGANIZATION_LEVEL.BRANCH_ID   AS branchUserId
+			,V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID || ','
+				|| V_ORGANIZATION_LEVEL.CHILD_SECTION_ID AS sectionUserId
+			,R_USER_SECTION.SECTION_NAME      AS sectionUserName
+			, ARRAY_TO_STRING(
+		   		ARRAY(
+					SELECT
+						V_ORGANIZATION_LEVEL.BRANCH_NAME
+					FROM
+						V_ORGANIZATION_LEVEL V_ORGANIZATION_LEVEL
+					WHERE
+						V_ORGANIZATION_LEVEL.CHILD_SECTION_ID = R_USER_SECTION.SECTION_ID
+					AND  V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID = R_USER_SECTION.COMPANY_ID
+				), CHR(13)
+			) AS branchUserName
+			, ROW_NUMBER() OVER (ORDER BY ${sort} ${order}) AS ROW_NUMBER
+		FROM
+			APP_USER APP_USER
+		INNER JOIN
+			R_USER_SECTION R_USER_SECTION
+		ON APP_USER.APP_USER_ID=R_USER_SECTION.APP_USER_ID
+		INNER JOIN
+			V_ORGANIZATION_LEVEL
+		ON R_USER_SECTION.COMPANY_ID=V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID
+		AND R_USER_SECTION.SECTION_ID=V_ORGANIZATION_LEVEL.CHILD_SECTION_ID
+		WHERE
+			APP_USER.USER_ROLE                    = #{constants.ROLE_DIV_NOTHING}
+		AND APP_USER.ENABLED_SHARED_USE           = #{constants.ENABLED_SHARED_USE_PRIVATE}
+		AND APP_USER.DELETED                      = #{constants.COM_FLG_OFF}
+		AND R_USER_SECTION.DELETED                = #{constants.COM_FLG_OFF}
+		AND V_ORGANIZATION_LEVEL.BRANCH_ID        = #{branchUserId}
+		AND V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID = #{companyUserId}
+		AND V_ORGANIZATION_LEVEL.CHILD_SECTION_ID = #{sectionUserId}
+	</sql>
+
+	<!-- 管理権限付与対象者一覧取得 -->
+	<select id="getAuthManagementTargetList" parameterType="AuthManagementModel" resultType="AuthManagementResultModel">
+		SELECT
+			 v_info.userId             AS userId
+			,v_info.employeeId         AS employeeId
+			,v_info.kanjiUserName      AS kanjiUserName
+			,v_info.authId             AS authId
+			,v_info.authName           AS authName
+			,v_info.branchName         AS branchName
+			,v_info.branchUserId       AS branchUserId
+			,v_info.sectionUserId      AS sectionUserId
+			,v_info.sectionUserName    AS sectionUserName
+			,v_info.branchUserName     AS branchUserName
+		FROM
+			(
+				<include refid="selectAuthManagementTargetList"/>
+			) v_info
+		WHERE
+			v_info.ROW_NUMBER BETWEEN #{start} AND #{end}
+	</select>
+
+	<!-- 管理権限付与対象者一覧件数取得 -->
+	<select id="getAuthManagementTargetListTotal" parameterType="AuthManagementModel" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			APP_USER APP_USER
+		INNER JOIN
+			R_USER_SECTION R_USER_SECTION
+		ON APP_USER.APP_USER_ID=R_USER_SECTION.APP_USER_ID
+		INNER JOIN
+			V_ORGANIZATION_LEVEL
+		ON R_USER_SECTION.COMPANY_ID=V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID
+		AND R_USER_SECTION.SECTION_ID=V_ORGANIZATION_LEVEL.CHILD_SECTION_ID
+		WHERE
+			APP_USER.USER_ROLE                    = #{constants.ROLE_DIV_NOTHING}
+		AND APP_USER.ENABLED_SHARED_USE           = #{constants.ENABLED_SHARED_USE_PRIVATE}
+		AND APP_USER.DELETED                      = #{constants.COM_FLG_OFF}
+		AND R_USER_SECTION.DELETED                = #{constants.COM_FLG_OFF}
+		AND V_ORGANIZATION_LEVEL.BRANCH_ID        = #{branchUserId}
+		AND V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID = #{companyUserId}
+		AND V_ORGANIZATION_LEVEL.CHILD_SECTION_ID = #{sectionUserId}
+	</select>
+</mapper>

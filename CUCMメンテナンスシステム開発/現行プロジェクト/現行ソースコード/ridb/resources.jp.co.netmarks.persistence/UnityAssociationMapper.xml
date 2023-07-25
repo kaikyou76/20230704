@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.UnityAssociationMapper">
+
+	<!-- ### INSERT ### -->
+	<insert id="insertUnityAssociation" parameterType="UnityAssociationEntity">
+		INSERT INTO UNITY_ASSOCIATION(
+		    CUCM_PHONE_ID
+		  , STATUS_CODE
+		  , ASSOCIATE_CODE
+		  , UNITY_DATA
+		  , VOICE_MAIL_PROFILE_CLASS
+		  , DELETED
+		  , CREATION_DATETIME
+		  , LASTUPDATE_DATETIME
+		) VALUES (
+		    #{cucmPhoneId}
+		  , #{statusCode}
+		  , (SELECT
+				 L.DIRECTORY_NUMBER
+			 FROM
+				 R_CUCM_PHONE_LINE PL INNER JOIN CUCM_LINE L
+					ON PL.CUCM_LINE_ID = L.CUCM_LINE_ID
+			 WHERE
+				 PL.CUCM_PHONE_ID = #{cucmPhoneId}
+			 AND PL.INDEX        = #{constants.TEL_LINE_INDEX_1})
+		  , #{unityData}
+		  , #{voiceMailProfileClass}
+		  , #{deleted}
+		  , #{crtTmstmp}
+		  , #{lstupdtTmstmp}
+		)
+	</insert>
+
+	<!-- ### UPDATE ### -->
+
+
+	<!-- ### DELETE ### -->
+	<delete id="deleteUnityAssociation" parameterType="UnityAssociationEntity">
+		DELETE
+		FROM
+			UNITY_ASSOCIATION
+		WHERE
+			CUCM_PHONE_ID = #{cucmPhoneId}
+	</delete>
+
+</mapper>

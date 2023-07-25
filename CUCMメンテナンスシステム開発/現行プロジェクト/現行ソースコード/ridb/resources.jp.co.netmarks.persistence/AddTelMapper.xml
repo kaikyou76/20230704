@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.co.netmarks.persistence.AddTelMapper">
+
+	<!-- 電話機の一覧情報 -->
+	<sql id="selectAddTel">
+		SELECT
+			CASE
+				WHEN V_USER.APP_USER_ID IS NULL     THEN #{constants.TEL_STATUS_INSIDE_STOCK_NAME}
+				WHEN V_USER.APP_USER_ID IS NOT NULL THEN #{constants.TEL_STATUS_USE_NAME}
+			END AS telStatusName
+			,CASE
+				WHEN V_USER.APP_USER_ID IS NULL     THEN #{constants.TEL_STATUS_INSIDE_STOCK}
+				WHEN V_USER.APP_USER_ID IS NOT NULL THEN #{constants.TEL_STATUS_USE}
+			END AS telStatus
+			, CUCM_LINE.DIRECTORY_NUMBER     AS directoryNumber
+			, COALESCE(R_CUCM_PHONE_LINE.DIALIN,'') AS dialin
+			, CUCM_PHONE.PHONE_PRODUCT_NAME  AS telTypeModel
+			, CUCM_PHONE.MAC_ADDRESS         AS macAddress
+			, COALESCE(V_USER.NAME_KANJI,'') AS kanjiUserName
+			, M_BRANCH.BRANCH_NAME           AS branchTelName
+			, M_BRANCH.BRANCH_ID             AS branchTelId
+			, M_SECTION.SECTION_NAME         AS sectionTelName
+			, M_SECTION.SECTION_ID           AS sectionTelId
+			, M_SECTION.COMPANY_ID           AS companyTelId
+			, CHARGE_ASSOCIATION.BRANCH_ID   AS chargeAssociationBranchId
+			, CHARGE_ASSOCIATION.PARENT_SECTION_ID  AS chargeAssociationParentSectionId
+			, CHARGE_ASSOCIATION.SECTION_ID  AS chargeAssociationSectionId
+			, V_USER.APP_USER_ID             AS userId
+			, CUCM_PHONE.CUCM_PHONE_ID       AS telId
+			, CUCM_LINE.CUCM_LINE_ID         AS lineId
+			, V_USER.SECTION_ID              AS sectionUserId
+			, V_USER.COMPANY_ID              AS companyUserId
+		FROM
+			CUCM_PHONE CUCM_PHONE INNER JOIN M_BRANCH M_BRANCH
+				ON (CUCM_PHONE.BRANCH_ID = M_BRANCH.BRANCH_ID)
+			INNER JOIN M_SECTION M_SECTION
+				ON (CUCM_PHONE.SECTION_ID = M_SECTION.SECTION_ID
+				AND CUCM_PHONE.COMPANY_ID = M_SECTION.COMPANY_ID)
+			INNER JOIN R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+				ON (CUCM_PHONE.CUCM_PHONE_ID = R_CUCM_PHONE_LINE.CUCM_PHONE_ID)
+			INNER JOIN CUCM_LINE CUCM_LINE
+				ON (R_CUCM_PHONE_LINE.CUCM_LINE_ID = CUCM_LINE.CUCM_LINE_ID)
+			INNER JOIN CHARGE_ASSOCIATION CHARGE_ASSOCIATION
+				ON (CUCM_LINE.CUCM_LINE_ID = CHARGE_ASSOCIATION.CUCM_LINE_ID)
+			LEFT OUTER JOIN (
+					SELECT
+						APP_USER.APP_USER_ID  AS APP_USER_ID
+						, APP_USER.NAME_KANJI AS NAME_KANJI
+						, R_CUCM_USER_PHONE.CUCM_PHONE_ID AS CUCM_PHONE_ID
+						, R_CUCM_USER_PHONE.SECTION_ID
+						, R_CUCM_USER_PHONE.COMPANY_ID
+					FROM
+						APP_USER APP_USER INNER JOIN R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+							ON R_CUCM_USER_PHONE.APP_USER_ID = APP_USER.APP_USER_ID
+					WHERE
+						APP_USER.DELETED            = #{constants.COM_FLG_OFF}
+					AND R_CUCM_USER_PHONE.DELETED   = #{constants.COM_FLG_OFF}) V_USER
+				ON CUCM_PHONE.CUCM_PHONE_ID = V_USER.CUCM_PHONE_ID
+		WHERE
+			CUCM_PHONE.DELETED        = #{constants.COM_FLG_OFF}
+		AND R_CUCM_PHONE_LINE.DELETED = #{constants.COM_FLG_OFF}
+		AND NOT EXISTS(
+		  	SELECT
+				1
+			FROM
+				APP_USER
+			WHERE
+				APP_USER.ENABLED_SHARED_USE = #{constants.ENABLED_SHARED_USE_SHARE}
+			AND APP_USER.APP_USER_ID = V_USER.APP_USER_ID
+		)
+		<!-- 選択した電話機以外 -->
+		<if test=" orgTelId != null and orgTelId != 0 ">
+			AND CUCM_PHONE.CUCM_PHONE_ID <![CDATA[<>]]> #{orgTelId}
+		</if>
+		<!-- 拠点 -->
+		<if test=" addTelBranchId != null and addTelBranchId != '' ">
+			AND CUCM_PHONE.BRANCH_ID = #{addTelBranchId}
+		</if>
+		<!-- 店部課 -->
+		<if test=" addTelSectionId != null and addTelSectionId != '' ">
+			AND CUCM_PHONE.SECTION_ID = #{addTelSectionId}
+			AND CUCM_PHONE.COMPANY_ID = #{addTelCompanyId}
+		</if>
+		<!-- 内線番号 -->
+		<if test=" addTelDirectoryNumber != null and addTelDirectoryNumber != '' ">
+			AND CUCM_LINE.DIRECTORY_NUMBER LIKE #{addTelDirectoryNumber}
+		</if>
+		<!-- ステータス -->
+		<if test=" telStatus != null and telStatus != '' ">
+			<choose>
+				<when test=" telStatus == constants.TEL_STATUS_INSIDE_STOCK ">
+					AND V_USER.APP_USER_ID IS NULL
+				</when>
+				<otherwise>
+					AND V_USER.APP_USER_ID IS NOT NULL
+				</otherwise>
+			</choose>
+		</if>
+		<!-- 拠点（課金） -->
+		<if test=" addTelChargeAssociationBranchId != null and addTelChargeAssociationBranchId != '' ">
+			AND CHARGE_ASSOCIATION.BRANCH_ID LIKE #{addTelChargeAssociationBranchId}
+		</if>
+		<!-- 親店部課（課金） -->
+		<if test=" addTelChargeAssociationParentSectionId != null and addTelChargeAssociationParentSectionId != '' ">
+			AND CHARGE_ASSOCIATION.PARENT_SECTION_ID LIKE #{addTelChargeAssociationParentSectionId}
+		</if>
+		<!-- 店部課（課金） -->
+		<if test=" addTelChargeAssociationSectionId != null and addTelChargeAssociationSectionId != '' ">
+			AND CHARGE_ASSOCIATION.SECTION_ID LIKE #{addTelChargeAssociationSectionId}
+		</if>
+	</sql>
+
+	<!-- 電話機追加一覧件数取得 -->
+	<select id="getTelAddTotal" parameterType="AddTelModel" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			(
+			<include refid="selectAddTel"/>
+			) V_SEARCH_INFO
+	</select>
+
+	<!-- 電話機追加一覧取得 -->
+	<select id="getTelAddList" parameterType="AddTelModel" resultType="AddTelResultModel">
+		SELECT
+			  V_INFO.telStatusName   AS telStatusName
+			, V_INFO.telStatus       AS telStatus
+			, V_INFO.directoryNumber AS directoryNumber
+			, V_INFO.dialin          AS dialin
+			, V_INFO.telTypeModel    AS telTypeModel
+			, V_INFO.macAddress      AS macAddress
+			, V_INFO.kanjiUserName   AS kanjiUserName
+			, V_INFO.branchTelName   AS branchTelName
+			, V_INFO.sectionTelName  AS sectionTelName
+			, V_INFO.chargeAssociationBranchId        || '-' ||
+			  V_INFO.chargeAssociationParentSectionId || '-' ||
+			  V_INFO.chargeAssociationSectionId       AS chargeAssociationPlace
+			, V_INFO.chargeAssociationBranchId        AS chargeAssociationBranchId
+			, V_INFO.chargeAssociationParentSectionId AS chargeAssociationParentSectionId
+			, V_INFO.chargeAssociationSectionId       AS chargeAssociationSectionId
+			, V_INFO.userId          AS userId
+			, V_INFO.telId           AS telId
+			, V_INFO.lineId          AS lineId
+		FROM
+			(
+			SELECT
+				  V_SEARCH_INFO.telStatusName   AS telStatusName
+				, V_SEARCH_INFO.telStatus       AS telStatus
+				, V_SEARCH_INFO.directoryNumber AS directoryNumber
+				, V_SEARCH_INFO.dialin          AS dialin
+				, V_SEARCH_INFO.telTypeModel    AS telTypeModel
+				, V_SEARCH_INFO.macAddress      AS macAddress
+				, V_SEARCH_INFO.kanjiUserName   AS kanjiUserName
+				, V_SEARCH_INFO.branchTelName   AS branchTelName
+				, V_SEARCH_INFO.sectionTelName  AS sectionTelName
+				, V_SEARCH_INFO.chargeAssociationBranchId        AS chargeAssociationBranchId
+				, V_SEARCH_INFO.chargeAssociationParentSectionId AS chargeAssociationParentSectionId
+				, V_SEARCH_INFO.chargeAssociationSectionId       AS chargeAssociationSectionId
+				, V_SEARCH_INFO.userId          AS userId
+				, V_SEARCH_INFO.telId           AS telId
+				, V_SEARCH_INFO.lineId          AS lineId
+				, ROW_NUMBER() OVER (ORDER BY (${sort}) ${order}) AS ROW_NUMBER		<!-- ソード順 -->
+			FROM
+				(
+				<include refid="selectAddTel"/>
+				) V_SEARCH_INFO
+			) V_INFO
+		WHERE
+			V_INFO.ROW_NUMBER BETWEEN #{start} AND #{end}
+	</select>
+
+</mapper>

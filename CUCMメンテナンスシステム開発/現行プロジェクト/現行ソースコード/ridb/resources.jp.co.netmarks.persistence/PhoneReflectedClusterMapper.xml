@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.PhoneReflectedClusterMapper">
+
+	<!-- ### INSERT ### -->
+	<insert id="insertPhoneReflectedCluster" parameterType="PhoneReflectedClusterEntity">
+		INSERT INTO PHONE_REFLECTED_CLUSTER( 
+			  CUCM_PHONE_ID
+			, CLUSTER_ID
+			, PHONE_PKID
+			, CREATION_DATETIME
+			, LASTUPDATE_DATETIME
+		) VALUES ( 
+			  #{cucmPhoneId}
+			, #{clusterId}
+			, #{phonePkid}
+			, #{crtTmstmp}
+			, #{lstupdtTmstmp}
+		) 
+	</insert>
+	
+	
+	<!-- ### UPDATE ### -->
+	
+	
+	<!-- ### DELETE ### -->
+
+
+</mapper>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.PhoneLineMapper">
+
+	<!-- ### INSERT ### -->
+
+	<!-- 電話－ライン登録処理 -->
+	<insert id="insertPhoneLine" parameterType="PhoneLineEntity" >
+		INSERT INTO r_cucm_phone_line(
+		  cucm_phone_id
+		  , cucm_line_id
+		  , index
+		  , external_phone_number_mask
+		  , dialin
+		  , line_text_label
+		  , ringsetting_name
+		  , remarks
+		  , cucm_update_request_flag
+		  , deleted
+		  , error_flg
+		  , creation_datetime
+		  , lastupdate_datetime
+		) VALUES (
+		    #{cucmPhoneId}
+		  , #{cucmLineId}
+		  , #{index}
+		  , #{externalPhoneNumberMask}
+		  , #{dialin}
+		  , #{lineTextLabel}
+		  , #{ringsettingName}
+		  , #{remarks}
+		  , #{cucmUpdateRequestFlag}
+		  , #{deleted}
+		  , #{errorFlg}
+		  , #{crtTmstmp}
+		  , #{lstupdtTmstmp}
+		)
+	</insert>
+
+	<!--  ### UPDATE ### -->
+	<update id="updatePhoneLine" parameterType="PhoneLineEntity">
+		UPDATE R_CUCM_PHONE_LINE SET
+		  EXTERNAL_PHONE_NUMBER_MASK = #{externalPhoneNumberMask}
+		  , DIALIN                   = #{dialin}
+		  , LINE_TEXT_LABEL          = #{lineTextLabel}
+		  , RINGSETTING_NAME         = #{ringsettingName}
+		  , REMARKS                  = #{remarks}
+		  , CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+		  , LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+			CUCM_PHONE_ID = #{cucmPhoneId}
+		AND CUCM_LINE_ID  = #{cucmLineId}
+		AND INDEX         = #{index}
+	</update>
+
+	<!-- 削除フラグを立てる -->
+	<update id="updatePhoneLineDelete" parameterType="PhoneLineEntity" >
+		UPDATE R_CUCM_PHONE_LINE SET
+		    DELETED             = #{deleted}
+		  , CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+		  , LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+			CUCM_PHONE_ID = #{cucmPhoneId}
+		AND CUCM_LINE_ID  = #{cucmLineId}
+		AND INDEX         = #{index}
+	</update>
+	
+	<!-- 削除フラグを立てる -->
+	<update id="updatePhoneLineDeleteDialin" parameterType="PhoneLineEntity" >
+		UPDATE R_CUCM_PHONE_LINE SET
+		    DELETED             = #{deleted}
+		  , DIALIN              = #{dialin}
+		  , CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+		  , LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+			CUCM_PHONE_ID = #{cucmPhoneId}
+		AND CUCM_LINE_ID  = #{cucmLineId}
+		AND INDEX         = #{index}
+	</update>
+
+	<!-- CUCM取込処理 -->
+	<update id="updatePhoneLineFetchCucm" parameterType="PhoneLineEntity">
+		UPDATE R_CUCM_PHONE_LINE SET
+		  EXTERNAL_PHONE_NUMBER_MASK = #{externalPhoneNumberMask}
+		  , LINE_TEXT_LABEL          = #{lineTextLabel}
+		  , RINGSETTING_NAME         = #{ringsettingName}
+		  , LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+			CUCM_PHONE_ID = #{cucmPhoneId}
+		AND CUCM_LINE_ID  = #{cucmLineId}
+	</update>
+	
+	<!-- 備考更新処理 -->
+	<update id="updatePhoneLineRemarks" parameterType="PhoneLineEntity">
+		UPDATE R_CUCM_PHONE_LINE SET
+			REMARKS = #{remarks}
+			, LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+			CUCM_PHONE_ID = #{cucmPhoneId}
+	</update>
+
+</mapper>

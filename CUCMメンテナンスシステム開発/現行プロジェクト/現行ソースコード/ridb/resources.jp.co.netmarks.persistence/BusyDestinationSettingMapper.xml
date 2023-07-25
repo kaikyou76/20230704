@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.BusyDestinationSettingMapper">
+
+	<!-- 話中転送先階層の取得 -->
+	<select id="getBusyDestinationClass" parameterType="BusyDestinationSettingModel" resultType="String">
+		WITH RECURSIVE V_BUSYDESTINATION(
+							BUSYDESTINATION
+							, SOCIALSTRATUM) AS(
+			SELECT
+				#{directoryNumber}  	<!-- 内線番号 -->
+				, ''					<!-- 階層 -->
+			UNION ALL
+			SELECT
+				CUCM_LINE.FWD_BUSY_DESTINATION		<!-- 話中転送 -->
+				, V_BUSYDESTINATION.SOCIALSTRATUM || ',' ||
+				  V_BUSYDESTINATION.BUSYDESTINATION
+			FROM
+				CUCM_LINE
+				, V_BUSYDESTINATION
+			WHERE
+				CUCM_LINE.DIRECTORY_NUMBER = V_BUSYDESTINATION.BUSYDESTINATION
+			AND CUCM_LINE.FWD_BUSY_DESTINATION IS NOT NULL
+			AND V_BUSYDESTINATION.SOCIALSTRATUM NOT LIKE '%' || V_BUSYDESTINATION.BUSYDESTINATION || '%'
+			AND CUCM_LINE.DELETED = #{constants.COM_FLG_OFF}
+		)
+		SELECT
+			SUBSTR(BUSYDESTINATION,LENGTH(BUSYDESTINATION)-3) AS  busyDestination
+		FROM
+			V_BUSYDESTINATION
+		OFFSET 0 LIMIT ${constants.BUSY_DESTINATION_CONDITION_INDEX}
+	</select>
+
+	<!-- 話中転送先階層の取得（逆階層） -->
+	<select id="getBusyDestinationReverseClass"  parameterType="BusyDestinationSettingModel" resultType="String">
+		WITH RECURSIVE V_BUSYDESTINATION(
+							DIRECTORYNUMBER
+							, SOCIALSTRATUM) AS(
+			SELECT
+				 #{directoryNumber}  	<!-- 内線番号 -->
+				, ''					<!-- 階層 -->
+			UNION ALL
+			SELECT
+				 CUCM_LINE.DIRECTORY_NUMBER
+				, V_BUSYDESTINATION.SOCIALSTRATUM || ',' ||
+				  V_BUSYDESTINATION.DIRECTORYNUMBER
+			FROM
+				CUCM_LINE
+				, V_BUSYDESTINATION
+			WHERE
+				CUCM_LINE.FWD_BUSY_DESTINATION = V_BUSYDESTINATION.DIRECTORYNUMBER
+			AND CUCM_LINE.FWD_BUSY_DESTINATION IS NOT NULL
+			AND V_BUSYDESTINATION.SOCIALSTRATUM NOT LIKE '%' || V_BUSYDESTINATION.DIRECTORYNUMBER || '%'
+			AND CUCM_LINE.DELETED = '0'
+		)
+		SELECT
+			SUBSTR(DIRECTORYNUMBER,LENGTH(DIRECTORYNUMBER)-3) AS  BUSYDESTINATION
+		FROM
+			V_BUSYDESTINATION
+		WHERE
+			V_BUSYDESTINATION.DIRECTORYNUMBER IS NOT NULL
+	</select>
+
+	<!-- ライン情報の取得 -->
+	<select id="getLineInfo" parameterType="Map" resultType="Map">
+		SELECT
+			CUCM_LINE.CUCM_LINE_ID    AS "lineId"
+			, CUCM_LINE.USE_VM_FLG    AS "vmFlg"
+			, CUCM_PHONE.BRANCH_ID    AS "branchId"
+		FROM
+			CUCM_LINE CUCM_LINE INNER JOIN R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+				ON CUCM_LINE.CUCM_LINE_ID = R_CUCM_PHONE_LINE.CUCM_LINE_ID
+			INNER JOIN CUCM_PHONE CUCM_PHONE
+				ON R_CUCM_PHONE_LINE.CUCM_PHONE_ID = CUCM_PHONE.CUCM_PHONE_ID
+		WHERE
+			CUCM_LINE.DIRECTORY_NUMBER = #{busyDestination}
+		AND CUCM_LINE.DELETED          = #{deleted}
+		AND R_CUCM_PHONE_LINE.DELETED  = #{deleted}
+		AND CUCM_PHONE.DELETED         = #{deleted}
+		OFFSET 0 LIMIT 1
+	</select>
+
+	<!-- 話中転送先の設定情報取得 -->
+	<select id="getBusyDestinationInfo" parameterType="BusyDestinationSettingModel" resultType="BusyDestinationSettingResultModel">
+		SELECT
+			CUCM_LINE.DIRECTORY_NUMBER       AS directoryNumber		<!-- 内線番号 -->
+			, V_USER_PHONE.NAME_KANJI        AS kanjiUserName		<!-- 漢字名 -->
+			, M_BRANCH.BRANCH_NAME           AS branchTelName		<!-- 拠点名 -->
+			, M_SECTION.SECTION_NAME         AS sectionTelName		<!-- 店部課名 -->
+			, CUCM_LINE.FWD_BUSY_DESTINATION AS busyDestination		<!-- 話中転送先 -->
+		FROM
+			CUCM_LINE INNER JOIN (				<!-- ライン -->
+				SELECT
+					R_CUCM_PHONE_LINE.CUCM_PHONE_ID
+					, R_CUCM_PHONE_LINE.CUCM_LINE_ID
+				FROM
+					R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+				WHERE
+					(R_CUCM_PHONE_LINE.CUCM_PHONE_ID, R_CUCM_PHONE_LINE.CUCM_LINE_ID) IN (
+						SELECT
+							MIN(V_MIN.CUCM_PHONE_ID), V_MIN.CUCM_LINE_ID
+						FROM
+							R_CUCM_PHONE_LINE V_MIN
+						WHERE
+							V_MIN.DELETED = #{constants.COM_FLG_OFF}
+						GROUP BY
+							CUCM_LINE_ID )
+			) V_PHONE_LINE						<!-- 電話ライン -->
+				ON CUCM_LINE.CUCM_LINE_ID = V_PHONE_LINE.CUCM_LINE_ID
+			INNER JOIN CUCM_PHONE CUCM_PHONE	<!-- 電話 -->
+				ON V_PHONE_LINE.CUCM_PHONE_ID = CUCM_PHONE.CUCM_PHONE_ID
+			LEFT OUTER JOIN (
+				SELECT
+					R_CUCM_USER_PHONE.APP_USER_ID
+					, R_CUCM_USER_PHONE.CUCM_PHONE_ID
+					, APP_USER.NAME_KANJI
+				FROM
+					R_CUCM_USER_PHONE R_CUCM_USER_PHONE INNER JOIN APP_USER APP_USER
+						ON R_CUCM_USER_PHONE.APP_USER_ID = APP_USER.APP_USER_ID
+				WHERE
+					APP_USER.DELETED = #{constants.COM_FLG_OFF}
+				AND	(R_CUCM_USER_PHONE.APP_USER_ID , R_CUCM_USER_PHONE.CUCM_PHONE_ID ) IN(
+						SELECT
+							MIN(V_MIN.APP_USER_ID)
+							, V_MIN.CUCM_PHONE_ID
+						FROM
+							R_CUCM_USER_PHONE V_MIN
+						WHERE
+							V_MIN.DELETED = #{constants.COM_FLG_OFF}
+						GROUP BY
+							V_MIN.APP_USER_ID
+							, V_MIN.CUCM_PHONE_ID
+					)
+			) V_USER_PHONE						<!-- ユーザー電話 -->
+				ON CUCM_PHONE.CUCM_PHONE_ID = V_USER_PHONE.CUCM_PHONE_ID
+			INNER JOIN M_BRANCH M_BRANCH		<!-- 拠点 -->
+				ON CUCM_PHONE.BRANCH_ID = M_BRANCH.BRANCH_ID
+			INNER JOIN M_SECTION M_SECTION		<!-- 店部課 -->
+				ON CUCM_PHONE.SECTION_ID = M_SECTION.SECTION_ID
+				AND CUCM_PHONE.COMPANY_ID = M_SECTION.COMPANY_ID
+		WHERE
+			CUCM_LINE.DELETED  = #{constants.COM_FLG_OFF}
+		AND CUCM_PHONE.DELETED = #{constants.COM_FLG_OFF}
+		AND CUCM_LINE.DIRECTORY_NUMBER IN
+		<foreach  collection="busyDestinationArray" item="busy" open="(" close=")" separator="," >
+			<if test=" busy != null and busy != '' ">
+				#{frontFour}|| #{busy}
+			</if>
+		</foreach >
+	</select>
+
+</mapper>

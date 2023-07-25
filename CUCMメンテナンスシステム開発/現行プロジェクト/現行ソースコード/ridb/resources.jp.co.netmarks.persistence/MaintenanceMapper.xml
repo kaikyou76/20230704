@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.MaintenanceMapper">
+
+
+	<!-- 所属情報一覧検索結果用 -->
+	<sql id="selectSearchBranchList">
+		SELECT
+			 M_BRANCH.BRANCH_ID                             AS branchId
+			,M_BRANCH.BRANCH_NAME                           AS branchName
+			,M_BRANCH.CLUSTER_ID                            AS clusterId
+			,#{constants.CLUSTER_LABEL}
+				|| M_BRANCH.CLUSTER_ID                      AS clusterName
+			,V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID          AS companyId
+			,V_ORGANIZATION_LEVEL.CHILD_SECTION_ID          AS sectionId
+			,V_ORGANIZATION_LEVEL.CHILD_SECTION_NAME        AS sectionName
+			, ROW_NUMBER() OVER (ORDER BY ( ${sort} ) ${order}) AS ROW_NUMBER
+		FROM
+			M_BRANCH M_BRANCH
+		LEFT OUTER JOIN
+			V_ORGANIZATION_LEVEL V_ORGANIZATION_LEVEL
+		ON M_BRANCH.BRANCH_ID = V_ORGANIZATION_LEVEL.BRANCH_ID
+		<if test=" branchId != null and branchId != '' ">
+		WHERE
+			M_BRANCH.BRANCH_ID = #{branchId}
+		</if>
+	</sql>
+
+	<!-- 所属情報一覧件数取得 -->
+	<select id="getBranchTotal" parameterType="MaintenanceSearchModel" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			M_BRANCH M_BRANCH
+		LEFT OUTER JOIN
+			V_ORGANIZATION_LEVEL V_ORGANIZATION_LEVEL
+		ON M_BRANCH.BRANCH_ID = V_ORGANIZATION_LEVEL.BRANCH_ID
+		<if test=" branchId != null and branchId != '' ">
+		WHERE
+			M_BRANCH.BRANCH_ID = #{branchId}
+		</if>
+	</select>
+
+	<!-- 所属情報一覧取得 -->
+	<select id="getBranchList" parameterType="MaintenanceSearchModel" resultType="MaintenanceResultModel">
+		SELECT
+			 v_info.branchId    AS branchId
+			,v_info.branchName  AS branchName
+			,v_info.clusterId   AS clusterId
+			,v_info.clusterName AS clusterName
+			,v_info.companyId   AS companyId
+			,v_info.sectionId   AS sectionId
+			,v_info.sectionName AS sectionName
+		FROM
+			(
+				<include refid="selectSearchBranchList"/>
+			) v_info
+		WHERE
+			v_info.ROW_NUMBER BETWEEN #{start} AND #{end}
+	</select>
+
+	<!-- CSVデータ取込 -->
+	<insert id="copyCsvData" parameterType="Map">
+		COPY
+			${tableName}
+		FROM
+			${filePath}
+		WITH CSV
+	</insert>
+
+	<!-- テーブルデータ削除 -->
+	<delete id="deleteTableData" parameterType="Map">
+		DELETE FROM ${tableName}
+	</delete>
+
+	<!-- 拠点と店部課の紐付き存在チェック(V_ORGANIZATION_LEVEL) -->
+	<select id="organizationLevelExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM
+			M_BRANCH M_BRANCH
+		LEFT OUTER JOIN
+			V_ORGANIZATION_LEVEL V_ORGANIZATION_LEVEL
+		ON M_BRANCH.BRANCH_ID = V_ORGANIZATION_LEVEL.BRANCH_ID
+		<where>
+			V_ORGANIZATION_LEVEL.BRANCH_ID = #{branchId}
+			<if test="sectionId != null and sectionId != ''">
+				AND V_ORGANIZATION_LEVEL.CHILD_SECTION_ID = #{sectionId}
+			</if>
+			<if test="companyId != null and companyId != ''">
+				AND V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID = #{companyId}
+			</if>
+		</where>
+	</select>
+
+	<!-- 電話機紐付きチェック -->
+	<select id="associatePhoneExistCheck" parameterType="Map" resultType="int">
+		SELECT
+			COUNT(1) AS cnt
+		FROM (
+			SELECT
+				CUCM_PHONE.CUCM_PHONE_ID
+			FROM
+				CUCM_PHONE CUCM_PHONE
+			INNER JOIN
+				V_SECTION_LEVEL V_SECTION_LEVEL
+			ON CUCM_PHONE.SECTION_ID = V_SECTION_LEVEL.CHILD_SECTION_ID
+			AND CUCM_PHONE.COMPANY_ID = V_SECTION_LEVEL.CHILD_COMPANY_ID
+			WHERE
+				CUCM_PHONE.BRANCH_ID = #{branchId}
+			AND V_SECTION_LEVEL.PARENT_COMPANY_ID = #{companyId}
+			AND V_SECTION_LEVEL.PARENT_SECTION_ID = #{sectionId}
+
+			UNION ALL
+
+			SELECT
+				CUCM_PHONE.CUCM_PHONE_ID
+			FROM
+				CUCM_PHONE CUCM_PHONE
+			WHERE
+				CUCM_PHONE.BRANCH_ID = #{branchId}
+			AND CUCM_PHONE.COMPANY_ID = #{companyId}
+			AND CUCM_PHONE.SECTION_ID = #{sectionId}
+		) AS ASSOCIATED_PHONE
+	</select>
+</mapper>

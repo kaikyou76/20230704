@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.IndividualUserMapper">
+	<select id="selectAllClusterId" parameterType="Map" resultType="String">
+		select cluster_id
+		from m_cluster mcluster
+		order by 1
+	</select>
+
+	<!-- ユーザーが持っている電話機(MACADDRESS,PhoneNum)を取得（クラスタ毎） -->
+	<select id="selUserTelNoByCluster" parameterType="Map" resultType="Map">
+		select cluster.cluster_id,
+			   au.app_user_id,
+			   line.directory_number as telephone_number,
+			   phone.cucm_phone_id,
+			   phone.mac_address,
+			   line.cucm_line_id
+		from app_user as au left join r_cucm_user_phone as rup
+			on (au.app_user_id = rup.app_user_id)
+			left join cucm_phone as phone
+			on (phone.cucm_phone_id = rup.cucm_phone_id)
+			left join phone_reflected_cluster cluster
+			on (phone.cucm_phone_id = cluster.cucm_phone_id)
+			left join r_cucm_phone_line as rpl
+			on (phone.cucm_phone_id = rpl.cucm_phone_id)
+			left join cucm_line as line
+			on (rpl.cucm_line_id = line.cucm_line_id)
+		where rup.deleted != '1'
+		  and rpl.deleted != '1'
+		  and au.deleted != '1'
+		  and phone.deleted != '1'
+		  and line.deleted != '1'
+		  and rpl.index = '1'
+		  and au.app_user_id = #{userid}
+		  and cluster_id = #{clusterid}
+		order by cluster.cluster_id,phone.cucm_phone_id,line.directory_number
+	</select>
+
+ <!-- 対象データ取得(User) -->
+	<select id="selectUserInfo" parameterType="Map" resultType="Map">
+		select
+			app_user_id as appuserid,
+			user_role as role,
+			enabled_shared_use as enableuse,
+			fulltime_employee as fullemp,
+			biz_employee_id as bizemp,
+			login_id as loginid,
+			login_password as loginpass,
+			cucm_login_id as cucmloginid,
+			cucm_login_password as cucmpass,
+			name_kanji as kanji,
+			name_kana as kana,
+			birthday,
+			first_name as firstnm,
+			last_name as lastnm,
+			pin,
+			telephone_number as telno,
+			enable_cti_application_use as ctiappuse,
+			manager_user_id as managerid,
+			department,
+			last_password_updatetime as lastpassupd,
+			cucm_update_request_flag as updflg,
+			deleted as delflg,
+			error_flg as errflg
+		from app_user
+		where app_user_id = #{userid}
+		and enabled_shared_use = '0'
+	</select>
+
+<!-- 電話機情報関連削除 -->
+	<delete id="deleteUserInfo" parameterType="Map" >
+		DELETE FROM TEL_DIR_ASSOCIATION WHERE APP_USER_ID = #{userid};
+		DELETE FROM R_CUCM_USER_PHONE WHERE APP_USER_ID = #{userid};
+		DELETE FROM R_USER_SECTION WHERE APP_USER_ID = #{userid};
+		DELETE FROM APP_USER WHERE APP_USER_ID = #{userid};
+	</delete>
+
+<!-- 追加更新処理成功時更新 -->
+	<update id="addSuccessUpdUser" parameterType="Map">
+		update APP_USER
+		set
+			LASTUPDATE_DATETIME = now(),
+			CUCM_UPDATE_REQUEST_FLAG = '0',
+			ERROR_FLG = '0'
+		WHERE APP_USER_ID = #{userid}
+	</update>
+
+
+
+<!-- Userと電話機紐付 -->
+	<!-- 対象レコードを取得 -->
+	<sql id="selUserPhoneInfo">
+		select  rup.app_user_id as userid,
+				rup.cucm_phone_id as phoneid,
+				rup.company_id as companyid,
+				rup.section_id as sectionid,
+				rup.cucm_update_request_flag as updflg,
+				rup.deleted as delflg,
+				rup.error_flg as errflg,
+				phone.mac_address as macaddress,
+				au.app_user_id as appuserid,
+				au.user_role as role,
+				au.enabled_shared_use as enableuse,
+				au.fulltime_employee as fullemp,
+				au.biz_employee_id as bizemp,
+				au.login_id as loginid,
+				au.login_password as loginpass,
+				au.cucm_login_id as cucmloginid,
+				au.cucm_login_password as cucmpass,
+				au.name_kanji as kanji,
+				au.name_kana as kana,
+				au.birthday,
+				au.first_name as firstnm,
+				au.last_name as lastnm,
+				au.pin as pin,
+				au.telephone_number as telno,
+				au.enable_cti_application_use as ctiappuse,
+				au.manager_user_id as managerid,
+				au.department,
+				au.last_password_updatetime as lastpassupd
+		from  cucm_phone as phone
+		        inner join r_cucm_user_phone as rup
+		        on (phone.cucm_phone_id = rup.cucm_phone_id)
+		        inner join app_user as au
+		        on (au.app_user_id = rup.app_user_id)
+		where  (rup.cucm_update_request_flag = '1'
+		or      rup.cucm_update_request_flag = '2')
+		and    au.enabled_shared_use = '0'
+	</sql>
+	<select id="selectUserPhoneInfo" parameterType="Map" resultType="Map">
+		<include refid="selUserPhoneInfo" />
+		  and au.app_user_id = #{userid}
+	</select>
+	<select id="selectUserAndPhoneInfo" parameterType="Map" resultType="Map">
+		<include refid="selUserPhoneInfo" />
+		  and au.app_user_id = #{userid}
+		  and phone.cucm_phone_id = #{phoneid}
+ 	</select>
+
+<!-- 電話機情報関連削除 -->
+	<select id="selDelPhoneUserList" parameterType="Map" resultType="Integer">
+		select distinct rup.app_user_id as appuserid
+		from  cucm_phone as phone
+		        inner join r_cucm_user_phone as rup
+		        on (phone.cucm_phone_id = rup.cucm_phone_id)
+		        inner join app_user as au
+		        on (au.app_user_id = rup.app_user_id and au.enabled_shared_use = '0')
+				inner join r_cucm_phone_line as rpl
+				on(phone.cucm_phone_id = rpl.cucm_phone_id)
+				inner join cucm_line as line
+				on(rpl.cucm_line_id = line.cucm_line_id)
+		where  phone.cucm_phone_id = #{phoneid}
+		and    rup.deleted = '1'
+		order by 1
+	</select>
+
+<!-- 電話機情報関連削除 -->
+	<delete id="delRCucmUserPhone" parameterType="Map" >
+		delete from R_CUCM_USER_PHONE
+		WHERE APP_USER_ID =  #{userid}
+		AND CUCM_PHONE_ID =  #{phoneid}
+		AND DELETED = '1'
+	</delete>
+
+<!-- 電話機情報関連削除 -->
+	<delete id="deleteTelDir" parameterType="Map" >
+		DELETE FROM TEL_DIR_ASSOCIATION
+		WHERE APP_USER_ID =  #{userid}
+		AND CUCM_PHONE_ID = #{phoneid}
+		AND DELETED = '1'
+	</delete>
+
+<!-- 追加処理成功時更新 -->
+	<update id="updRCucmUserPhone" parameterType="Map">
+		update R_CUCM_USER_PHONE
+		set LASTUPDATE_DATETIME = now(),
+			CUCM_UPDATE_REQUEST_FLAG = '0',
+			ERROR_FLG = '0'
+		WHERE APP_USER_ID = #{userid}
+		AND CUCM_PHONE_ID = #{phoneid}
+	</update>
+
+	<!-- User追加処理Error時更新 -->
+	<update id="updateErrorUser" parameterType="Map">
+		update app_user
+		set
+			lastupdate_datetime = now(),
+			cucm_update_request_flag = '1',
+			error_flg = '1'
+		where
+			app_user_id = #{userid}
+	</update>
+
+	<!-- User to Phone 処理Error時更新 -->
+	<update id="updateErrorUserPhone" parameterType="Map">
+		update r_cucm_user_phone
+		set
+			lastupdate_datetime = now(),
+			cucm_update_request_flag = '1',
+			error_flg = '1'
+		where
+			app_user_id = #{userid}
+		  and
+		    cucm_phone_id = #{phoneid}
+	</update>
+
+</mapper>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.ChargeAssociationMapper">
+
+	<!-- 登録処理 -->
+	<insert id="inertChargeAssociation" parameterType="ChargeAssociationEntity">
+		INSERT INTO CHARGE_ASSOCIATION(
+			CUCM_LINE_ID
+			, HEADER
+			, STATUS_CODE
+			, BRANCH_ID
+			, COMPANY_ID
+			, PARENT_SECTION_ID
+			, SECTION_ID
+			, REMARKS
+			, DELETED
+			, CREATION_DATETIME
+			, LASTUPDATE_DATETIME
+		)
+		VALUES (
+			#{cucmLineId}
+			, #{header}
+			, #{statusCode}
+			, #{branchId}
+			, #{companyId}
+			, #{parentSectionId}
+			, #{sectionId}
+			, #{remarks}
+			, #{deleted}
+			, #{crtTmstmp}
+			, #{lstupdtTmstmp}
+		)
+	</insert>
+
+	<!-- 更新処理 -->
+	<update id="updateChargeAssociation" parameterType="ChargeAssociationEntity">
+		UPDATE CHARGE_ASSOCIATION
+		SET
+			  BRANCH_ID                = #{branchId}
+			, COMPANY_ID               = #{companyId}
+			, PARENT_SECTION_ID        = #{parentSectionId}
+			, SECTION_ID               = #{sectionId}
+			, REMARKS                  = #{remarks}
+			, DELETED                  = #{deleted}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+			CUCM_LINE_ID = #{cucmLineId}
+	</update>
+
+	<!-- 更新処理 -->
+	<update id="updateChargeAssociationPlace" parameterType="ChargeAssociationEntity">
+		UPDATE CHARGE_ASSOCIATION
+		SET
+			  BRANCH_ID                = #{branchId}
+			, PARENT_SECTION_ID        = #{parentSectionId}
+			, SECTION_ID               = #{sectionId}
+			, DELETED                  = #{deleted}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+			CUCM_LINE_ID = #{cucmLineId}
+	</update>
+
+	<!-- 更新処理（削除） -->
+	<update id="updateChargeAssociationDelete" parameterType="ChargeAssociationEntity">
+		UPDATE CHARGE_ASSOCIATION
+		SET
+			  DELETED                  = #{deleted}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+			CUCM_LINE_ID = #{cucmLineId}
+	</update>
+
+</mapper>

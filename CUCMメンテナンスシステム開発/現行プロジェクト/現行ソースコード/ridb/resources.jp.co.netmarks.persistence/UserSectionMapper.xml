@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.UserSectionMapper">
+
+	<!-- ### INSERT ### -->
+	<insert id="insertUserSection"  parameterType="UserSectionEntity">
+		INSERT INTO r_user_section(
+			APP_USER_ID
+			, COMPANY_ID
+			, SECTION_ID
+			, SECTION_NAME
+			, PRINT_ORDER
+			, DELETE_RESERVE
+			, DELETED
+			, CREATION_DATETIME
+			, LASTUPDATE_DATETIME
+		)
+		VALUES (
+			#{appUserId}
+			, #{companyId}
+			, #{sectionId}
+			, #{sectionName}
+			, #{printOrder}
+			, #{deleteReserve}
+			, #{deleted}
+			, #{crtTmstmp}
+			, #{lstupdtTmstmp}
+		)
+
+	</insert>
+
+	<!-- ### UPDATE ### -->
+
+	<!-- ユーザーの所属部署の予約削除フラグが立っている項目に削除フラグを立てる -->
+	<update id="updateUserSectionDeleteReserve" parameterType="UserSectionEntity">
+		UPDATE R_USER_SECTION SET
+		   DELETE_RESERVE       = #{deleteReserve}
+		  , DELETED             = #{deleted}
+		  , LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+			APP_USER_ID    = #{appUserId}
+		AND DELETE_RESERVE = #{constants.COM_FLG_ON}
+	</update>
+
+	<!-- ### DELETE ### -->
+
+	<!-- 削除処理 -->
+	<delete id="deleteUserSection" parameterType="UserSectionEntity">
+		DELETE FROM R_USER_SECTION
+		WHERE
+		  APP_USER_ID = #{appUserId}
+		  AND COMPANY_ID = #{companyId}
+		  AND SECTION_ID = #{sectionId}
+	</delete>
+
+</mapper>

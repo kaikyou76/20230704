@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.IndividualPhoneMapper">
+
+ <!-- 対象データ取得(電話機) -->
+	<select id="selectPhoneInfo" parameterType="Map" resultType="Map">
+		select
+			phone.cucm_phone_id as phoneid,
+			phone_product_name as productname,
+			mac_address as macaddress,
+			description as desc,
+			calling_search_space_name as css,
+			location_name as location,
+			device_pool_name as device,
+			phone_button_template_name as phonetmp,
+			addon_module_name_1 as addmod1,
+			addon_module_name_2 as addmod2,
+			company_id as companyid,
+			section_id as sectionid,
+			branch_id as branchid,
+			cucm_update_request_flag as updateflg,
+			deleted as delflg,
+			error_flg as errflg,
+			cluster.phone_pkid as pkid,
+			phone.owner_user_id as ownerid
+		from cucm_phone phone left outer join phone_reflected_cluster cluster
+			 on(phone.cucm_phone_id = cluster.cucm_phone_id)
+		where
+			phone.cucm_phone_id = #{phoneid}
+	</select>
+
+ <!-- 対象データ取得(電話機のライン) -->
+ 	<select id="selectPhoneToLine" parameterType="Map" resultType="Map">
+		select
+			line.cucm_line_id as lineid,
+			line.directory_number as directno,
+			line.fwd_all_css as allcss,
+			line.fwd_busy_destination as busyno,
+			line.fwd_busy_css as busycss,
+			line.fwd_noans_destination as noansno,
+			line.fwd_noans_css as noanscss,
+			line.call_pickup_group_name as pickupnm,
+			line.use_vm_flg as vmflg,
+			rpl.cucm_update_request_flag as updflg,
+			rpl.deleted as delflg,
+			rpl.error_flg as errflg,
+			cluster.line_pkid as pkid,
+			rpl.external_phone_number_mask as expnummask,
+			rpl.index as index,
+			rpl.ringsetting_name as ringnm,
+			rpl.line_text_label as linelabel,
+			phone.mac_address as macaddress,
+			phone.addon_module_name_1 as addmod1,
+			phone.addon_module_name_2 as addmod2,
+			phone.branch_id as branchid,
+			phone.company_id as companyid,
+			phone.calling_search_space_name as css,
+			phone.description as desc,
+			phone.device_pool_name as poolnm,
+			phone.location_name as location,
+			phone.phone_button_template_name as phonetmp,
+			phone.phone_product_name as product,
+			phone.section_id as sectionid,
+			phone.owner_user_id as ownerid
+		from cucm_line line left outer join line_reflected_cluster cluster
+			 on(line.cucm_line_id = cluster.cucm_line_id)
+			 left outer join r_cucm_phone_line rpl
+			 on(line.cucm_line_id = rpl.cucm_line_id)
+			 left outer join cucm_phone phone
+			 on(phone.cucm_phone_id = rpl.cucm_phone_id)
+		where phone.cucm_phone_id = #{phoneid}
+		  and cluster.cluster_id = #{clusterid}
+		  and rpl.deleted != '1'
+ 	</select>
+
+<!-- 対象データ取得(電話機のUser) -->
+ 	<select id="selectPhoneToUser" parameterType="Map" resultType="Map">
+		select  rup.app_user_id as userid,
+				rup.cucm_phone_id as phoneid,
+				rup.company_id as companyid,
+				rup.section_id as sectionid,
+				rup.cucm_update_request_flag as updflg,
+				rup.deleted as delflg,
+				rup.error_flg as errflg,
+				phone.mac_address as macaddress,
+				au.app_user_id as appuserid,
+				au.user_role as role,
+				au.enabled_shared_use as enableuse,
+				au.fulltime_employee as fullemp,
+				au.biz_employee_id as bizemp,
+				au.login_id as loginid,
+				au.login_password as loginpass,
+				au.cucm_login_id as cucmloginid,
+				au.cucm_login_password as cucmpass,
+				au.name_kanji as kanji,
+				au.name_kana as kana,
+				au.birthday,
+				au.first_name as firstnm,
+				au.last_name as lastnm,
+				au.pin as pin,
+				au.telephone_number as telno,
+				au.enable_cti_application_use as ctiappuse,
+				au.manager_user_id as managerid,
+				au.department,
+				au.last_password_updatetime as lastpassupd
+		from  cucm_phone as phone
+		        inner join r_cucm_user_phone as rup
+		        on (phone.cucm_phone_id = rup.cucm_phone_id)
+		        inner join app_user as au
+		        on (au.app_user_id = rup.app_user_id)
+		where  phone.cucm_phone_id = #{phoneid}
+		  and  rup.deleted != '1'
+		  and  au.enabled_shared_use = '0'
+		order by au.app_user_id
+ 	</select>
+
+<!-- 対象データ取得(Userの電話機) -->
+ 	<select id="selectUserToPhone" parameterType="Map" resultType="Map">
+ 		<include refid="UserToPhone" />
+ 		where au.app_user_id = #{userid}
+		  and cluster.cluster_id = #{clusterid}
+		  order by au.app_user_id
+ 	</select>
+
+	<sql id="UserToPhone">
+		select rup.app_user_id as userid,
+			rup.cucm_phone_id as phoneid,
+			rup.company_id as companyid,
+			rup.section_id as sectionid,
+			rup.cucm_update_request_flag as updflg,
+			rup.deleted as delflg,
+			rup.error_flg as errflg,
+			phone.cucm_phone_id as cucmphoneid,
+			phone.phone_product_name as productname,
+			phone.mac_address as macaddress,
+			phone.description as desc,
+			phone.calling_search_space_name as css,
+			phone.location_name as location,
+			phone.device_pool_name as device,
+			phone.phone_button_template_name as phonetmp,
+			phone.addon_module_name_1 as addmod1,
+			phone.addon_module_name_2 as addmod2,
+			phone.company_id as companyid,
+			phone.section_id as sectionid,
+			phone.branch_id as branchid,
+			phone.owner_user_id as ownerid,
+			au.app_user_id as appuserid,
+			au.user_role as role,
+			au.enabled_shared_use as enableuse,
+			au.fulltime_employee as fullemp,
+			au.biz_employee_id as bizemp,
+			au.login_id as loginid,
+			au.login_password as loginpass,
+			au.cucm_login_id as cucmloginid,
+			au.cucm_login_password as cucmpass,
+			au.name_kanji as kanji,
+			au.name_kana as kana,
+			au.birthday,
+			au.first_name as firstnm,
+			au.last_name as lastnm,
+			au.pin as pin,
+			au.telephone_number as telno,
+			au.enable_cti_application_use as ctiappuse,
+			au.manager_user_id as managerid,
+			au.department,
+			au.last_password_updatetime as lastpassupd,
+			cluster.phone_pkid as phonepkid
+		from app_user as au inner join r_cucm_user_phone as rup on (au.app_user_id = rup.app_user_id)
+			inner join cucm_phone as phone on (phone.cucm_phone_id = rup.cucm_phone_id)
+			left outer join phone_reflected_cluster cluster on(phone.cucm_phone_id = cluster.cucm_phone_id)
+ 	</sql>
+
+<!-- 電話機情報関連削除 -->
+	<delete id="deletePhoneInfo" parameterType="Map" >
+		DELETE FROM CUCM_PHONE WHERE CUCM_PHONE_ID = #{phoneid};
+		DELETE FROM UNITY_ASSOCIATION WHERE CUCM_PHONE_ID = #{phoneid};
+		DELETE FROM TEL_DIR_ASSOCIATION WHERE CUCM_PHONE_ID = #{phoneid};
+		DELETE FROM R_CUCM_USER_PHONE WHERE CUCM_PHONE_ID = #{phoneid};
+		DELETE FROM R_CUCM_PHONE_LINE WHERE CUCM_PHONE_ID = #{phoneid};
+	</delete>
+
+<!-- 電話機クラスタ削除 -->
+	<delete id="deletePhoneCluster" parameterType="Map" >
+		delete from phone_reflected_cluster
+		where cucm_phone_id = #{phoneid}
+		  and cluster_id = #{clusterid}
+	</delete>
+
+<!-- 電話機クラスタ追加 -->
+	<insert id="insertPhoneCluster" parameterType="Map">
+		insert into phone_reflected_cluster (
+			cucm_phone_id,
+			cluster_id,
+			phone_pkid,
+			creation_datetime,
+			lastupdate_datetime
+		) values (
+			#{phoneid},
+			#{clusterid},
+			#{phoneuuid},
+			now(),
+			now()
+		)
+	</insert>
+
+<!-- 追加処理成功時更新 -->
+	<update id="addSuccessUpdPhone" parameterType="Map">
+		UPDATE CUCM_PHONE
+		set
+			LASTUPDATE_DATETIME = now(),
+			CUCM_UPDATE_REQUEST_FLAG = '0',
+			ERROR_FLG = '0'
+		WHERE
+			CUCM_PHONE_ID = #{phoneid}
+	</update>
+
+
+<!-- 更新時：クラスタ関係 -->
+	<!-- 対象レコードが更新前後でクラスタを跨ぐか判定する為に新旧クラスタを取得 -->
+	<select id="selectClusterPhonejudge" parameterType="Map" resultType="Map">
+		select
+			o.cluster_id as o_clusterid,
+			n.cluster_id as n_clusterid
+		from
+			(
+				select cluster_id,cucm_phone_id
+				from phone_reflected_cluster pcluster
+				Where pcluster.cucm_phone_id = #{phoneid}
+			) o full outer join
+			(
+				select cluster_id,cucm_phone_id
+				from cucm_phone phon inner join m_branch mb
+					on phon.branch_id = mb.branch_id
+				Where phon.cucm_phone_id = #{phoneid}
+			) n on o.cucm_phone_id = n.cucm_phone_id
+	</select>
+
+	<!-- 電話機追加処理Error時更新 -->
+	<update id="updateErrorPhone" parameterType="Map">
+		update cucm_phone
+		set
+			lastupdate_datetime = now(),
+			cucm_update_request_flag = '1',
+			error_flg = '1'
+		where
+			cucm_phone_id = #{phoneid}
+	</update>
+
+</mapper>

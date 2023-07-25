@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.UserPhoneMapper">
+
+	<!-- ### INSERT ### -->
+	<!-- ユーザー電話機紐付け登録処理 -->
+	<insert id="insertUserPhone" parameterType="UserPhoneEntity">
+	INSERT INTO R_CUCM_USER_PHONE(
+	  APP_USER_ID
+	  , CUCM_PHONE_ID
+	  , COMPANY_ID
+	  , SECTION_ID
+	  , CUCM_UPDATE_REQUEST_FLAG
+	  , DELETED
+	  , ERROR_FLG
+	  , CREATION_DATETIME
+	  , LASTUPDATE_DATETIME
+	)VALUES (
+	    #{appUserId}
+	  , #{cucmPhoneId}
+	  , #{companyId}
+	  , #{sectionId}
+	  , #{cucmUpdateRequestFlag}
+	  , #{deleted}
+	  , #{errorFlg}
+	  , #{crtTmstmp}
+	  , #{lstupdtTmstmp}
+	)
+	</insert>
+
+	<!-- ### UPDATE ### -->
+
+	<!-- ユーザー電話情報をセットする -->
+	<update id="updateUserPhone" parameterType="UserPhoneEntity">
+		UPDATE R_CUCM_USER_PHONE
+		SET
+			COMPANY_ID                 = #{companyId}
+			, SECTION_ID               = #{sectionId}
+			, CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+			, DELETED                  = #{deleted}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+		  APP_USER_ID        = #{appUserId}
+		  AND CUCM_PHONE_ID  = #{cucmPhoneId}
+	</update>
+
+	<!-- 削除フラグを立てる -->
+	<update id="updateUserPhoneDelete" parameterType="UserPhoneEntity">
+		UPDATE R_CUCM_USER_PHONE
+		SET
+		  CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+		  , DELETED                = #{deleted}
+		  , LASTUPDATE_DATETIME    = #{lstupdtTmstmp}
+		WHERE
+		  APP_USER_ID        = #{appUserId}
+		  AND CUCM_PHONE_ID  = #{cucmPhoneId}
+	</update>
+
+	<!-- 会社、店部課を更新 -->
+	<update id="updateUserPhoneSection" parameterType="UserPhoneEntity">
+		UPDATE R_CUCM_USER_PHONE
+		SET
+		  COMPANY_ID            = #{companyId}
+		  , SECTION_ID          = #{sectionId}
+		  , LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+		  APP_USER_ID       = #{appUserId}
+		  AND CUCM_PHONE_ID = #{cucmPhoneId}
+	</update>
+
+	<!-- 削除予約の項目を削除フラグをたてる -->
+	<update id="updateUserPhoneDeleteReserve" parameterType="UserPhoneEntity">
+		UPDATE R_CUCM_USER_PHONE
+		SET
+			CUCM_UPDATE_REQUEST_FLAG = #{constants.CUCM_UPDATE_FLG_WAIT_2}
+			, DELETED                = #{constants.COM_FLG_ON}
+			, LASTUPDATE_DATETIME    = #{lstupdtTmstmp}
+		WHERE
+			EXISTS(
+				SELECT
+					1
+				FROM
+					R_USER_SECTION R_USER_SECTION
+				WHERE
+					R_USER_SECTION.APP_USER_ID = #{appUserId}
+				AND R_USER_SECTION.APP_USER_ID = R_CUCM_USER_PHONE.APP_USER_ID
+				AND R_USER_SECTION.COMPANY_ID = R_CUCM_USER_PHONE.COMPANY_ID
+				AND R_USER_SECTION.SECTION_ID = R_CUCM_USER_PHONE.SECTION_ID
+				AND R_USER_SECTION.DELETE_RESERVE = #{constants.COM_FLG_ON}
+			)
+	</update>
+
+	<!-- ### DELETE ### -->
+	<delete id="deleteUserPhone" parameterType="UserPhoneEntity">
+		DELETE FROM R_CUCM_USER_PHONE
+		WHERE
+	  		APP_USER_ID   = #{appUserId}
+	  	AND CUCM_PHONE_ID = #{cucmPhoneId}
+	</delete>
+
+</mapper>

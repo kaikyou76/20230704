@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.CheckConsistencyMapper">
+
+	<!-- CUCM情報取得日時取得 -->
+	<select id="getCucmMasterUpdateTime"  resultType="string">
+		SELECT
+			  TO_CHAR(CUCM_MASTER_LAST_UPDATE.LASTUPDATE_UPDATETIME,'YYYY/MM/DD HH24:MI:SS')  AS updateTime	<!-- CUCM情報取得日時 -->
+		FROM
+			CUCM_MASTER_LAST_UPDATE CUCM_MASTER_LAST_UPDATE
+	</select>
+
+	<!-- 不整合データ一覧検索結果用(CUCM) -->
+	<sql id="selectSearchInconsistencyCucmList">
+		<![CDATA[
+		SELECT
+			CASE
+				WHEN CUCM.JOINKEY IS NULL
+					THEN #{constants.INCONSISTENCY_CUCM_NO_EXIST}
+				WHEN APP.JOINKEY IS NULL
+					THEN #{constants.INCONSISTENCY_APP_NO_EXIST}
+				WHEN (
+					COALESCE(CUCM.DESCRIPTION,'')
+						<> COALESCE(APP.DESCRIPTION,'')
+					OR COALESCE(CUCM.CALLING_SEARCH_SPACE_NAME,'')
+						<> COALESCE(APP.CALLING_SEARCH_SPACE_NAME,'')
+					OR COALESCE(CUCM.LOCATION_NAME,'')
+						<> COALESCE(APP.LOCATION_NAME,'')
+					OR COALESCE(CUCM.DEVICE_POOL_NAME,'')
+						<> COALESCE(APP.DEVICE_POOL_NAME,'')
+					OR COALESCE(CUCM.PHONE_BUTTON_TEMPLATE_NAME,'')
+						<> COALESCE(APP.PHONE_BUTTON_TEMPLATE_NAME,'')
+					OR COALESCE(CUCM.ADDON_MODULE_NAME_1,'')
+						<> COALESCE(APP.ADDON_MODULE_NAME_1,'')
+					OR COALESCE(CUCM.ADDON_MODULE_NAME_2,'')
+						<> COALESCE(APP.ADDON_MODULE_NAME_2,'')
+				) AND
+				(
+					COALESCE(CUCM.FWD_ALL_CSS,'')
+						<> COALESCE(APP.FWD_ALL_CSS,'')
+					OR COALESCE(CUCM.FWD_BUSY_CSS,'')
+						<> COALESCE(APP.FWD_BUSY_CSS,'')
+					OR COALESCE(CUCM.FWD_BUSY_DESTINATION,'')
+						<> COALESCE(APP.FWD_BUSY_DESTINATION,'')
+					OR COALESCE(CUCM.FWD_NOANS_CSS,'')
+						<> COALESCE(APP.FWD_NOANS_CSS,'')
+					OR COALESCE(CUCM.FWD_NOANS_DESTINATION,'')
+						<> COALESCE(APP.FWD_NOANS_DESTINATION,'')
+					OR COALESCE(CUCM.CALL_PICKUP_GROUP_NAME,'')
+						<> COALESCE(APP.CALL_PICKUP_GROUP_NAME,'')
+					OR COALESCE(CUCM.USE_VM_FLG,'')
+						<> COALESCE(APP.USE_VM_FLG,'')
+					OR COALESCE(CUCM.INDEX,'')
+						<> COALESCE(APP.INDEX,'')
+					OR COALESCE(CUCM.EXTERNAL_PHONE_NUMBER_MASK,'')
+						<> COALESCE(APP.EXTERNAL_PHONE_NUMBER_MASK,'')
+					OR COALESCE(CUCM.LINE_TEXT_LABEL,'')
+						<> COALESCE(APP.LINE_TEXT_LABEL,'')
+					OR COALESCE(CUCM.RING_SETTING_NAME,'')
+						<> COALESCE(APP.RINGSETTING_NAME,'')
+				)
+					THEN #{constants.INCONSISTENCY_TEL_LINE}
+				WHEN COALESCE(CUCM.DESCRIPTION,'')
+					<> COALESCE(APP.DESCRIPTION,'')
+				OR COALESCE(CUCM.CALLING_SEARCH_SPACE_NAME,'')
+					<> COALESCE(APP.CALLING_SEARCH_SPACE_NAME,'')
+				OR COALESCE(CUCM.LOCATION_NAME,'')
+					<> COALESCE(APP.LOCATION_NAME,'')
+				OR COALESCE(CUCM.DEVICE_POOL_NAME,'')
+					<> COALESCE(APP.DEVICE_POOL_NAME,'')
+				OR COALESCE(CUCM.PHONE_BUTTON_TEMPLATE_NAME,'')
+					<> COALESCE(APP.PHONE_BUTTON_TEMPLATE_NAME,'')
+				OR COALESCE(CUCM.ADDON_MODULE_NAME_1,'')
+					<> COALESCE(APP.ADDON_MODULE_NAME_1,'')
+				OR COALESCE(CUCM.ADDON_MODULE_NAME_2,'')
+					<> COALESCE(APP.ADDON_MODULE_NAME_2,'')
+					THEN #{constants.INCONSISTENCY_TEL}
+				WHEN COALESCE(CUCM.FWD_ALL_CSS,'')
+					<> COALESCE(APP.FWD_ALL_CSS,'')
+				OR COALESCE(CUCM.FWD_BUSY_CSS,'')
+					<> COALESCE(APP.FWD_BUSY_CSS,'')
+				OR COALESCE(CUCM.FWD_BUSY_DESTINATION,'')
+					<> COALESCE(APP.FWD_BUSY_DESTINATION,'')
+				OR COALESCE(CUCM.FWD_NOANS_CSS,'')
+					<> COALESCE(APP.FWD_NOANS_CSS,'')
+				OR COALESCE(CUCM.FWD_NOANS_DESTINATION,'')
+					<> COALESCE(APP.FWD_NOANS_DESTINATION,'')
+				OR COALESCE(CUCM.CALL_PICKUP_GROUP_NAME,'')
+					<> COALESCE(APP.CALL_PICKUP_GROUP_NAME,'')
+				OR COALESCE(CUCM.USE_VM_FLG,'0')
+					<> COALESCE(APP.USE_VM_FLG,'')
+				OR COALESCE(CUCM.INDEX,'')
+					<> COALESCE(APP.INDEX,'')
+				OR COALESCE(CUCM.EXTERNAL_PHONE_NUMBER_MASK,'')
+					<> COALESCE(APP.EXTERNAL_PHONE_NUMBER_MASK,'')
+				OR COALESCE(CUCM.LINE_TEXT_LABEL,'')
+					<> COALESCE(APP.LINE_TEXT_LABEL,'')
+				OR COALESCE(CUCM.RING_SETTING_NAME,'')
+					<> COALESCE(APP.RINGSETTING_NAME,'')
+					THEN #{constants.INCONSISTENCY_LINE}
+			   END                                 AS inconsistencyDiv
+			    ,CUCM.JOINKEY                      AS cucmJoinKey
+			    ,CUCM.MAC_ADDRESS                  AS cucmMacAddress
+			    ,CUCM.DIALIN                       AS cucmDirectoryNumber
+				,CUCM.DESCRIPTION                  AS cucmDescription
+				,CUCM.CALLING_SEARCH_SPACE_NAME    AS cucmCssName
+				,CUCM.LOCATION_NAME                AS cucmLocationName
+				,CUCM.DEVICE_POOL_NAME             AS cucmDevicePoolName
+				,CUCM.PHONE_BUTTON_TEMPLATE_NAME   AS cucmPhoneButtonName
+				,CUCM.ADDON_MODULE_NAME_1          AS cucmAddonModule1
+				,CUCM.ADDON_MODULE_NAME_2          AS cucmAddonModule2
+				,CUCM.FWD_ALL_CSS                  AS cucmFwdAllCss
+				,CUCM.FWD_BUSY_CSS                 AS cucmFwdBusyCss
+				,CUCM.FWD_BUSY_DESTINATION         AS cucmFwdBusyDestination
+				,CUCM.FWD_NOANS_CSS                AS cucmFwdNoansCss
+				,CUCM.FWD_NOANS_DESTINATION        AS cucmFwdNoansDestination
+				,CUCM.CALL_PICKUP_GROUP_NAME       AS cucmPickupGroup
+				,CUCM.USE_VM_FLG                   AS cucmUseVmFlg
+				,CUCM.INDEX                        AS cucmIndex
+				,CUCM.EXTERNAL_PHONE_NUMBER_MASK   AS cucmExternalPhoneNumber
+				,CUCM.LINE_TEXT_LABEL              AS cucmLineTextLabel
+				,CUCM.RING_SETTING_NAME            AS cucmRingSetting
+				,APP.JOINKEY                       AS appJoinKey
+				,APP.CUCM_PHONE_ID                 AS appPhoneId
+				,APP.CUCM_LINE_ID                  AS appLineId
+				,APP.MAC_ADDRESS                   AS appMacAddress
+			    ,APP.DIRECTORY_NUMBER              AS appDirectoryNumber
+				,APP.DESCRIPTION                   AS appDescription
+				,APP.CALLING_SEARCH_SPACE_NAME     AS appCssName
+				,APP.LOCATION_NAME                 AS appLocationName
+				,APP.DEVICE_POOL_NAME              AS appDevicePoolName
+				,APP.PHONE_BUTTON_TEMPLATE_NAME    AS appPhoneButtonName
+				,APP.ADDON_MODULE_NAME_1           AS appAddonModule1
+				,APP.ADDON_MODULE_NAME_2           AS appAddonModule2
+				,APP.FWD_ALL_CSS                   AS appFwdAllCss
+				,APP.FWD_BUSY_CSS                  AS appFwdBusyCss
+				,APP.FWD_BUSY_DESTINATION          AS appFwdBusyDestination
+				,APP.FWD_NOANS_CSS                 AS appFwdNoansCss
+				,APP.FWD_NOANS_DESTINATION         AS appFwdNoansDestination
+				,APP.CALL_PICKUP_GROUP_NAME        AS appPickupGroup
+				,APP.USE_VM_FLG                    AS appUseVmFlg
+				,APP.INDEX                         AS appIndex
+				,APP.EXTERNAL_PHONE_NUMBER_MASK    AS appExternalPhoneNumber
+				,APP.LINE_TEXT_LABEL               AS appLineTextLabel
+				,APP.RINGSETTING_NAME              AS appRingSetting
+				, ROW_NUMBER() OVER (ORDER BY (${sort}) ${order}) AS ROW_NUMBER
+		FROM
+			(
+				SELECT
+					P.MAC_ADDRESS || '/' || L.DIALIN AS JOINKEY
+					,P.MAC_ADDRESS
+					,L.DIALIN
+					,P.DESCRIPTION
+					,P.CALLING_SEARCH_SPACE_NAME
+					,P.LOCATION_NAME
+					,P.DEVICE_POOL_NAME
+					,P.PHONE_BUTTON_TEMPLATE_NAME
+					,P.ADDON_MODULE_NAME_1
+					,P.ADDON_MODULE_NAME_2
+					,L.FWD_ALL_CSS
+					,L.FWD_BUSY_CSS
+					,L.FWD_BUSY_DESTINATION
+					,L.FWD_NOANS_CSS
+					,L.FWD_NOANS_DESTINATION
+					,L.CALL_PICKUP_GROUP_NAME
+					,CASE
+						WHEN L.USE_VM_FLG <> #{constants.VOICE_MAIL_FLG_ON}
+						THEN #{constants.VOICE_MAIL_FLG_OFF}
+						ELSE USE_VM_FLG
+					 END
+					,PL.INDEX
+					,PL.EXTERNAL_PHONE_NUMBER_MASK
+					,PL.LINE_TEXT_LABEL
+					,PL.RING_SETTING_NAME
+				FROM C_CUCM_PHONE P
+				INNER JOIN C_CUCM_PHONE_LINE PL
+					ON P.PHONE_PKID = PL.PHONE_PKID
+					AND P.CLUSTER_ID = PL.CLUSTER_ID
+				INNER JOIN C_CUCM_LINE L
+					ON PL.LINE_PKID = L.LINE_PKID
+					AND PL.CLUSTER_ID = L.CLUSTER_ID
+			) AS CUCM
+		FULL OUTER JOIN
+			(
+				 SELECT
+				 	P.MAC_ADDRESS || '/' || L.DIRECTORY_NUMBER AS JOINKEY
+				 	,P.CUCM_PHONE_ID
+				 	,L.CUCM_LINE_ID
+				 	,P.MAC_ADDRESS
+					,L.DIRECTORY_NUMBER
+					,P.DESCRIPTION
+					,P.CALLING_SEARCH_SPACE_NAME
+					,'Hub_None'::text AS LOCATION_NAME
+					,P.DEVICE_POOL_NAME
+					,P.PHONE_BUTTON_TEMPLATE_NAME
+					,P.ADDON_MODULE_NAME_1
+					,P.ADDON_MODULE_NAME_2
+					,L.FWD_ALL_CSS
+					,L.FWD_BUSY_CSS
+					,L.FWD_BUSY_DESTINATION
+					,L.FWD_NOANS_CSS
+					,L.FWD_NOANS_DESTINATION
+					,L.CALL_PICKUP_GROUP_NAME
+					,L.USE_VM_FLG
+					,PL.INDEX
+					,PL.EXTERNAL_PHONE_NUMBER_MASK
+					,PL.LINE_TEXT_LABEL
+					,PL.RINGSETTING_NAME
+				FROM CUCM_PHONE P
+				INNER JOIN R_CUCM_PHONE_LINE PL
+					ON P.CUCM_PHONE_ID = PL.CUCM_PHONE_ID
+				INNER JOIN CUCM_LINE L
+					ON PL.CUCM_LINE_ID = L.CUCM_LINE_ID
+				INNER JOIN M_BRANCH B
+					ON P.BRANCH_ID = B.BRANCH_ID
+				INNER JOIN M_CLUSTER C
+					ON B.CLUSTER_ID = C.CLUSTER_ID
+				WHERE
+					P.DELETED = #{constants.COM_FLG_OFF}
+					AND PL.DELETED = #{constants.COM_FLG_OFF}
+					AND L.DELETED = #{constants.COM_FLG_OFF}
+			) AS APP
+			ON APP.JOINKEY = CUCM.JOINKEY
+		WHERE
+			CUCM.JOINKEY IS NULL
+			OR APP.JOINKEY IS NULL
+			OR COALESCE(CUCM.DESCRIPTION,'')
+				<> COALESCE(APP.DESCRIPTION,'')
+			OR COALESCE(CUCM.CALLING_SEARCH_SPACE_NAME,'')
+				<> COALESCE(APP.CALLING_SEARCH_SPACE_NAME,'')
+			OR COALESCE(CUCM.LOCATION_NAME,'')
+				<> COALESCE(APP.LOCATION_NAME,'')
+			OR COALESCE(CUCM.DEVICE_POOL_NAME,'')
+				<> COALESCE(APP.DEVICE_POOL_NAME,'')
+			OR COALESCE(CUCM.PHONE_BUTTON_TEMPLATE_NAME,'')
+				<> COALESCE(APP.PHONE_BUTTON_TEMPLATE_NAME,'')
+			OR COALESCE(CUCM.ADDON_MODULE_NAME_1,'')
+				<> COALESCE(APP.ADDON_MODULE_NAME_1,'')
+			OR COALESCE(CUCM.ADDON_MODULE_NAME_2,'')
+				<> COALESCE(APP.ADDON_MODULE_NAME_2,'')
+			OR COALESCE(CUCM.FWD_ALL_CSS,'')
+				<> COALESCE(APP.FWD_ALL_CSS,'')
+			OR COALESCE(CUCM.FWD_BUSY_CSS,'')
+				<> COALESCE(APP.FWD_BUSY_CSS,'')
+			OR COALESCE(CUCM.FWD_BUSY_DESTINATION,'')
+				<> COALESCE(APP.FWD_BUSY_DESTINATION,'')
+			OR COALESCE(CUCM.FWD_NOANS_CSS,'')
+				<> COALESCE(APP.FWD_NOANS_CSS,'')
+			OR COALESCE(CUCM.FWD_NOANS_DESTINATION,'')
+				<> COALESCE(APP.FWD_NOANS_DESTINATION,'')
+			OR COALESCE(CUCM.CALL_PICKUP_GROUP_NAME,'')
+				<> COALESCE(APP.CALL_PICKUP_GROUP_NAME,'')
+			OR COALESCE(CUCM.USE_VM_FLG,'')
+				<> COALESCE(APP.USE_VM_FLG,'')
+			OR COALESCE(CUCM.INDEX,'')
+				<> COALESCE(APP.INDEX,'')
+			OR COALESCE(CUCM.EXTERNAL_PHONE_NUMBER_MASK,'')
+				<> COALESCE(APP.EXTERNAL_PHONE_NUMBER_MASK,'')
+			OR COALESCE(CUCM.LINE_TEXT_LABEL,'')
+				<> COALESCE(APP.LINE_TEXT_LABEL,'')
+			OR COALESCE(CUCM.RING_SETTING_NAME,'')
+				<> COALESCE(APP.RINGSETTING_NAME,'')
+		]]>
+	</sql>
+	
+<!-- 不整合データ一覧件数取得(CUCM) -->
+	<select id="getInconsistencyCucmListTotal" parameterType="CheckConsistencySearchModel" resultType="int">
+		<![CDATA[
+		SELECT
+			COUNT(1)
+		FROM
+			(
+				SELECT
+					P.MAC_ADDRESS || '/' || L.DIALIN AS JOINKEY
+					,P.DESCRIPTION
+					,P.CALLING_SEARCH_SPACE_NAME
+					,P.LOCATION_NAME
+					,P.DEVICE_POOL_NAME
+					,P.PHONE_BUTTON_TEMPLATE_NAME
+					,P.ADDON_MODULE_NAME_1
+					,P.ADDON_MODULE_NAME_2
+					,L.FWD_ALL_CSS
+					,L.FWD_BUSY_CSS
+					,L.FWD_BUSY_DESTINATION
+					,L.FWD_NOANS_CSS
+					,L.FWD_NOANS_DESTINATION
+					,L.CALL_PICKUP_GROUP_NAME
+					,CASE
+						WHEN L.USE_VM_FLG <> #{constants.VOICE_MAIL_FLG_ON}
+						THEN #{constants.VOICE_MAIL_FLG_OFF}
+						ELSE USE_VM_FLG
+					 END
+					,PL.INDEX
+					,PL.EXTERNAL_PHONE_NUMBER_MASK
+					,PL.LINE_TEXT_LABEL
+					,PL.RING_SETTING_NAME
+				FROM C_CUCM_PHONE P
+				INNER JOIN C_CUCM_PHONE_LINE PL
+					ON P.PHONE_PKID = PL.PHONE_PKID
+					AND P.CLUSTER_ID = PL.CLUSTER_ID
+				INNER JOIN C_CUCM_LINE L
+					ON PL.LINE_PKID = L.LINE_PKID
+					AND PL.CLUSTER_ID = L.CLUSTER_ID
+			) AS CUCM
+		FULL OUTER JOIN
+			(
+				 SELECT
+				 	P.MAC_ADDRESS || '/' || L.DIRECTORY_NUMBER AS JOINKEY
+					,P.DESCRIPTION
+					,P.CALLING_SEARCH_SPACE_NAME
+					,'Hub_None'::text AS LOCATION_NAME
+					,P.DEVICE_POOL_NAME
+					,P.PHONE_BUTTON_TEMPLATE_NAME
+					,P.ADDON_MODULE_NAME_1
+					,P.ADDON_MODULE_NAME_2
+					,L.FWD_ALL_CSS
+					,L.FWD_BUSY_CSS
+					,L.FWD_BUSY_DESTINATION
+					,L.FWD_NOANS_CSS
+					,L.FWD_NOANS_DESTINATION
+					,L.CALL_PICKUP_GROUP_NAME
+					,L.USE_VM_FLG
+					,PL.INDEX
+					,PL.EXTERNAL_PHONE_NUMBER_MASK
+					,PL.LINE_TEXT_LABEL
+					,PL.RINGSETTING_NAME
+				FROM CUCM_PHONE P
+				INNER JOIN R_CUCM_PHONE_LINE PL
+					ON P.CUCM_PHONE_ID = PL.CUCM_PHONE_ID
+				INNER JOIN CUCM_LINE L
+					ON PL.CUCM_LINE_ID = L.CUCM_LINE_ID
+				INNER JOIN M_BRANCH B
+					ON P.BRANCH_ID = B.BRANCH_ID
+				INNER JOIN M_CLUSTER C
+					ON B.CLUSTER_ID = C.CLUSTER_ID
+				WHERE
+					P.DELETED = #{constants.COM_FLG_OFF}
+					AND PL.DELETED = #{constants.COM_FLG_OFF}
+					AND L.DELETED = #{constants.COM_FLG_OFF}
+			) AS APP
+			ON APP.JOINKEY = CUCM.JOINKEY
+		WHERE
+			CUCM.JOINKEY IS NULL
+			OR APP.JOINKEY IS NULL
+			OR COALESCE(CUCM.DESCRIPTION,'')
+				<> COALESCE(APP.DESCRIPTION,'')
+			OR COALESCE(CUCM.CALLING_SEARCH_SPACE_NAME,'')
+				<> COALESCE(APP.CALLING_SEARCH_SPACE_NAME,'')
+			OR COALESCE(CUCM.LOCATION_NAME,'')
+				<> COALESCE(APP.LOCATION_NAME,'')
+			OR COALESCE(CUCM.DEVICE_POOL_NAME,'')
+				<> COALESCE(APP.DEVICE_POOL_NAME,'')
+			OR COALESCE(CUCM.PHONE_BUTTON_TEMPLATE_NAME,'')
+				<> COALESCE(APP.PHONE_BUTTON_TEMPLATE_NAME,'')
+			OR COALESCE(CUCM.ADDON_MODULE_NAME_1,'')
+				<> COALESCE(APP.ADDON_MODULE_NAME_1,'')
+			OR COALESCE(CUCM.ADDON_MODULE_NAME_2,'')
+				<> COALESCE(APP.ADDON_MODULE_NAME_2,'')
+			OR COALESCE(CUCM.FWD_ALL_CSS,'')
+				<> COALESCE(APP.FWD_ALL_CSS,'')
+			OR COALESCE(CUCM.FWD_BUSY_CSS,'')
+				<> COALESCE(APP.FWD_BUSY_CSS,'')
+			OR COALESCE(CUCM.FWD_BUSY_DESTINATION,'')
+				<> COALESCE(APP.FWD_BUSY_DESTINATION,'')
+			OR COALESCE(CUCM.FWD_NOANS_CSS,'')
+				<> COALESCE(APP.FWD_NOANS_CSS,'')
+			OR COALESCE(CUCM.FWD_NOANS_DESTINATION,'')
+				<> COALESCE(APP.FWD_NOANS_DESTINATION,'')
+			OR COALESCE(CUCM.CALL_PICKUP_GROUP_NAME,'')
+				<> COALESCE(APP.CALL_PICKUP_GROUP_NAME,'')
+			OR COALESCE(CUCM.USE_VM_FLG,'')
+				<> COALESCE(APP.USE_VM_FLG,'')
+			OR COALESCE(CUCM.INDEX,'')
+				<> COALESCE(APP.INDEX,'')
+			OR COALESCE(CUCM.EXTERNAL_PHONE_NUMBER_MASK,'')
+				<> COALESCE(APP.EXTERNAL_PHONE_NUMBER_MASK,'')
+			OR COALESCE(CUCM.LINE_TEXT_LABEL,'')
+				<> COALESCE(APP.LINE_TEXT_LABEL,'')
+			OR COALESCE(CUCM.RING_SETTING_NAME,'')
+				<> COALESCE(APP.RINGSETTING_NAME,'')
+		]]>
+	</select>
+
+	<!-- 不整合データ一覧取得(CUCM) -->
+	<select id="getInconsistencyCucmList" parameterType="CheckConsistencySearchModel" resultType="CheckConsistencyResultModel">
+		SELECT
+				 v_info.inconsistencyDiv         AS inconsistencyDiv
+			    ,v_info.cucmJoinKey              AS cucmJoinKey
+			    ,v_info.cucmMacAddress           AS cucmMacAddress
+			    ,v_info.cucmDirectoryNumber      AS cucmDirectoryNumber
+				,v_info.cucmDescription          AS cucmDescription
+				,v_info.cucmCssName              AS cucmCssName
+				,v_info.cucmLocationName         AS cucmLocationName
+				,v_info.cucmDevicePoolName       AS cucmDevicePoolName
+				,v_info.cucmPhoneButtonName      AS cucmPhoneButtonName
+				,v_info.cucmAddonModule1         AS cucmAddonModule1
+				,v_info.cucmAddonModule2         AS cucmAddonModule2
+				,v_info.cucmFwdAllCss            AS cucmFwdAllCss
+				,v_info.cucmFwdBusyCss           AS cucmFwdBusyCss
+				,v_info.cucmFwdBusyDestination   AS cucmFwdBusyDestination
+				,v_info.cucmFwdNoansCss          AS cucmFwdNoansCss
+				,v_info.cucmFwdNoansDestination  AS cucmFwdNoansDestination
+				,v_info.cucmPickupGroup          AS cucmPickupGroup
+				,v_info.cucmUseVmFlg             AS cucmUseVmFlg
+				,v_info.cucmIndex                AS cucmIndex
+				,v_info.cucmExternalPhoneNumber  AS cucmExternalPhoneNumber
+				,v_info.cucmLineTextLabel        AS cucmLineTextLabel
+				,v_info.cucmRingSetting          AS cucmRingSetting
+				,v_info.appJoinKey               AS appJoinKey
+				,v_info.appPhoneId               AS appPhoneId
+				,v_info.appLineId                AS appLineId
+				,v_info.appMacAddress            AS appMacAddress
+			    ,v_info.appDirectoryNumber       AS appDirectoryNumber
+				,v_info.appDescription           AS appDescription
+				,v_info.appCssName               AS appCssName
+				,v_info.appLocationName          AS appLocationName
+				,v_info.appDevicePoolName        AS appDevicePoolName
+				,v_info.appPhoneButtonName       AS appPhoneButtonName
+				,v_info.appAddonModule1          AS appAddonModule1
+				,v_info.appAddonModule2          AS appAddonModule2
+				,v_info.appFwdAllCss             AS appFwdAllCss
+				,v_info.appFwdBusyCss            AS appFwdBusyCss
+				,v_info.appFwdBusyDestination    AS appFwdBusyDestination
+				,v_info.appFwdNoansCss           AS appFwdNoansCss
+				,v_info.appFwdNoansDestination   AS appFwdNoansDestination
+				,v_info.appPickupGroup           AS appPickupGroup
+				,v_info.appUseVmFlg              AS appUseVmFlg
+				,v_info.appIndex                 AS appIndex
+				,v_info.appExternalPhoneNumber   AS appExternalPhoneNumber
+				,v_info.appLineTextLabel         AS appLineTextLabel
+				,v_info.appRingSetting           AS appRingSetting
+		FROM
+			(
+				<include refid="selectSearchInconsistencyCucmList"/>
+			) v_info
+		WHERE
+			v_info.ROW_NUMBER BETWEEN #{start} AND #{end}
+
+	</select>
+	
+	<!-- 不整合データ一覧検索結果用(オフィスリンク) -->
+	<sql id="selectSearchInconsistencyOfficeLinkList">
+		<![CDATA[
+		SELECT
+ 			  office_link_directory_no
+		    , office_link_foma_no
+		    , office_link_sip_id
+			, office_link_sip_pw
+			, office_link_web_cuscom_user_nm
+			, office_link_web_cuscom_pw
+			, app_directory_no
+		    , app_foma_no
+		    , app_sip_id
+			, app_sip_pw
+			, app_web_cuscom_user_nm
+			, app_web_cuscom_pw
+			, ROW_NUMBER() OVER (ORDER BY (${sort}) ${order}) AS ROW_NUMBER
+		FROM
+			diff_office_link
+		]]>
+	</sql>
+	
+	<!-- 不整合データ一覧件数取得(オフィスリンク) -->
+	<select id="getInconsistencyOfficeLinkListTotal" parameterType="CheckConsistencySearchModel" resultType="int">
+		<![CDATA[
+		SELECT
+			COUNT(1)
+		FROM
+			diff_office_link
+		]]>
+	</select>
+
+	<!-- 不整合データ一覧取得(オフィスリンク) -->
+	<select id="getInconsistencyOfficeLinkList" parameterType="CheckConsistencySearchModel" resultType="CheckConsistencyResultModel">
+		SELECT
+			  v_info.office_link_directory_no       AS officeLinkDirectoryNo
+		    , v_info.office_link_foma_no            AS officeLinkFomaNo
+		    , v_info.office_link_sip_id             AS officeSIPID
+			, v_info.office_link_sip_pw             AS officeSIPPassword
+			, v_info.office_link_web_cuscom_user_nm AS officeLinkWebCuscomUserNm
+			, v_info.office_link_web_cuscom_pw      AS officeLinkWebCuscomPw
+			, v_info.app_directory_no               AS appDirectoryNo
+		    , v_info.app_foma_no                    AS appFomaNo
+		    , v_info.app_sip_id                     AS appSIPID
+			, v_info.app_sip_pw                     AS appSIPPw
+			, v_info.app_web_cuscom_user_nm         AS appWebCuscomUserNm
+			, v_info.app_web_cuscom_pw              AS appWebCuscomPw
+		FROM
+			(
+				<include refid="selectSearchInconsistencyOfficeLinkList"/>
+			) v_info
+		WHERE
+			v_info.ROW_NUMBER BETWEEN #{start} AND #{end}
+
+	</select>
+</mapper>	

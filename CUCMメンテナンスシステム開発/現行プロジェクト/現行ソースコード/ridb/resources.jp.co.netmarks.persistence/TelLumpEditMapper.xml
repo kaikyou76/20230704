@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.TelLumpEditMapper">
+
+
+	<!-- 電話機IDを取得 -->
+	<select id="getTelId" parameterType="String" resultType="BigDecimal">
+		SELECT
+			CUCM_PHONE.CUCM_PHONE_ID AS "telId"
+		FROM
+			CUCM_PHONE CUCM_PHONE
+		WHERE
+			CUCM_PHONE.MAC_ADDRESS   = #{macAddress}
+	</select>
+
+	<!-- 親店部課コードを取得 -->
+	<select id="getParentSectionId" parameterType="Map" resultType="String">
+		SELECT
+			DISTINCT(V_ORGANIZATION_LEVEL.PARENT_SECTION_ID)
+		FROM
+			V_ORGANIZATION_LEVEL V_ORGANIZATION_LEVEL
+		WHERE
+			V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID = #{companyTelId}
+		AND V_ORGANIZATION_LEVEL.CHILD_SECTION_ID = #{sectionTelId}
+	</select>
+
+	<!-- ラインIDと削除フラグを取得 -->
+	<select id="getLineIdDelete" parameterType="String" resultType="Map">
+		SELECT
+			CUCM_LINE.CUCM_LINE_ID AS "lineId"
+			,CUCM_LINE.DELETED      AS deleted
+		FROM
+			CUCM_LINE CUCM_LINE
+		WHERE
+			CUCM_LINE.DIRECTORY_NUMBER   = #{directoryNumber}
+	</select>
+
+	<!-- MACアドレス存在チェック 
+	<select id="macAddressExistCheck" parameterType="String" resultType="int">
+		SELECT
+		  COUNT(1) AS cnt
+		FROM
+		  CUCM_PHONE CUCM_PHONE
+		WHERE
+		  CUCM_PHONE.MAC_ADDRESS = #{macAddress}
+	</select>-->
+
+	<!-- CallingSearchSpaceName存在チェック 
+	<select id="callingSearchSpaceExistCheck" parameterType="Map" resultType="int">
+		SELECT
+	COUNT(1) AS cnt
+	FROM
+		CALLING_SEARCH_SPACE CALLING_SEARCH_SPACE
+	WHERE
+		CALLING_SEARCH_SPACE.NAME = #{cssName}
+	AND CALLING_SEARCH_SPACE.CLUSTER_ID = (
+			SELECT
+				M_BRANCH.CLUSTER_ID
+			FROM
+				M_BRANCH M_BRANCH
+			WHERE
+				M_BRANCH.BRANCH_ID = #{branchId}
+		)
+	</select>
+	-->
+</mapper>

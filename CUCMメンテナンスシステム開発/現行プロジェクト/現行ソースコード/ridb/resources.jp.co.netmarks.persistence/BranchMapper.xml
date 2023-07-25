@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.BranchMapper">
+
+	<!-- ### INSERT ### -->
+	<!-- 拠点登録処理 -->
+	<insert id="insertBranch" parameterType="BranchEntity" >
+		INSERT INTO M_BRANCH(
+					  BRANCH_ID
+					, BRANCH_NAME
+					, CLUSTER_ID
+					, CREATION_DATETIME
+					, LASTUPDATE_DATETIME
+			) VALUES (
+					  #{branchId}
+					, #{branchName}
+					, #{clusterId}
+					, #{crtTmstmp}
+					, #{lstupdtTmstmp}
+			)
+	</insert>
+
+	<!-- ### DELETE ### -->
+	<!-- 拠点削除処理 -->
+	<delete id="deleteBranch" parameterType="string">
+		DELETE FROM M_BRANCH M_BRANCH
+		WHERE M_BRANCH.BRANCH_ID = #{branchId}
+	</delete>
+
+	<!-- ### UPDATE ### -->
+	<!-- 拠点更新処理 -->
+	<update id="updateBranch" parameterType="BranchEntity" >
+		UPDATE M_BRANCH
+		SET
+			  BRANCH_NAME = #{branchName}
+			, CLUSTER_ID  = #{clusterId}
+			, LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+			BRANCH_ID = #{branchId}
+	</update>
+</mapper>

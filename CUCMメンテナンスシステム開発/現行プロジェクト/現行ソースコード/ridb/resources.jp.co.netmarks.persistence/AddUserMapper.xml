@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.AddUserMapper">
+
+	<!-- 検索処理 -->
+	<sql id="selectAddUser">
+		SELECT
+			  APP_USER.APP_USER_ID        AS userId					<!-- ユーザーID -->
+			, APP_USER.NAME_KANJI         AS userKanjiName			<!-- ユーザー漢字名 -->
+			, APP_USER.NAME_KANA          AS userKanaName			<!-- ユーザーカナ名 -->
+			, R_USER_SECTION.COMPANY_ID   AS companyId				<!-- 会社ID -->
+			, R_USER_SECTION.SECTION_ID   AS sectionId				<!-- 店部課ID -->
+			, R_USER_SECTION.SECTION_NAME AS sectionName			<!-- 店部課名 -->
+			, COALESCE(R_CUCM_USER_PHONE.APP_USER_ID, '0') AS retainTelStatus
+			, CASE
+				WHEN R_CUCM_USER_PHONE.APP_USER_ID IS NULL     THEN #{constants.USER_TEL_RETAIN_NOT_EXIST_NAME}
+				WHEN R_CUCM_USER_PHONE.APP_USER_ID IS NOT NULL THEN #{constants.USER_TEL_RETAIN_EXIST_NAME}
+			  END  AS retainTelStatusName
+		FROM
+			APP_USER APP_USER INNER JOIN R_USER_SECTION R_USER_SECTION
+				ON  APP_USER.APP_USER_ID = R_USER_SECTION.APP_USER_ID
+			LEFT OUTER JOIN R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+				ON  APP_USER.APP_USER_ID = R_CUCM_USER_PHONE.APP_USER_ID
+				AND R_USER_SECTION.SECTION_ID = R_CUCM_USER_PHONE.SECTION_ID
+				AND R_USER_SECTION.COMPANY_ID = R_CUCM_USER_PHONE.COMPANY_ID
+				AND R_CUCM_USER_PHONE.DELETED     = #{constants.COM_FLG_OFF}
+		WHERE
+			APP_USER.ENABLED_SHARED_USE   = #{constants.ENABLED_SHARED_USE_PRIVATE}
+		AND APP_USER.DELETED              = #{constants.COM_FLG_OFF}
+		AND R_USER_SECTION.DELETE_RESERVE = #{constants.COM_FLG_OFF}
+		AND R_USER_SECTION.DELETED        = #{constants.COM_FLG_OFF}
+		<if test=" orgUserId != null and orgUserId != '' ">
+			AND NOT EXISTS(
+				SELECT
+					1
+				FROM
+					R_USER_SECTION V_USER_SECTION
+				WHERE
+					V_USER_SECTION.APP_USER_ID = #{orgUserId}
+				AND V_USER_SECTION.COMPANY_ID = #{orgCompanyUserId}
+				AND V_USER_SECTION.SECTION_ID = #{orgSectionUserId}
+				AND R_USER_SECTION.APP_USER_ID = V_USER_SECTION.APP_USER_ID
+				AND R_USER_SECTION.COMPANY_ID = V_USER_SECTION.COMPANY_ID
+				AND R_USER_SECTION.SECTION_ID = V_USER_SECTION.SECTION_ID
+			)
+		</if>
+		<if test=" addUserKanaUserName != null and addUserKanaUserName != '' ">
+			AND APP_USER.NAME_KANA LIKE #{addUserKanaUserName}
+		</if>
+		<if test=" retainTelStatus != null and retainTelStatus != '' ">
+			<choose>
+				<when test=" retainTelStatus == constants.USER_TEL_RETAIN_EXIST ">
+					AND R_CUCM_USER_PHONE.APP_USER_ID IS NOT NULL
+				</when>
+				<otherwise>
+					AND R_CUCM_USER_PHONE.APP_USER_ID IS NULL
+				</otherwise>
+			</choose>
+		</if>
+		<!-- ユーザー－拠点 -->
+		<if test=" addUserBranchId != null and addUserBranchId != '' ">
+			<!-- ユーザー－会社、店部課ID -->
+			<choose>
+				<when test=" addUserSectionId != null and addUserSectionId != '' ">
+					AND R_USER_SECTION.SECTION_ID = #{addUserSectionId}
+					AND R_USER_SECTION.COMPANY_ID = #{addUserCompanyId}
+				</when>
+				<otherwise>
+					AND EXISTS(
+						SELECT
+							1
+						FROM
+							V_ORGANIZATION_LEVEL V_ORGANIZATION_LEVEL
+						WHERE
+							V_ORGANIZATION_LEVEL.BRANCH_ID        = #{addUserBranchId}
+						AND V_ORGANIZATION_LEVEL.CHILD_COMPANY_ID = R_USER_SECTION.COMPANY_ID
+						AND V_ORGANIZATION_LEVEL.CHILD_SECTION_ID = R_USER_SECTION.SECTION_ID
+					)
+				</otherwise>
+			</choose>
+		</if>
+		<!-- 所属店部課 -->
+		<if test=" addUserAttachSectionName != null and addUserAttachSectionName != '' ">
+			AND R_USER_SECTION.SECTION_NAME LIKE #{addUserAttachSectionName}
+		</if>
+		GROUP BY
+			  APP_USER.APP_USER_ID
+			, APP_USER.NAME_KANJI
+			, APP_USER.NAME_KANA
+			, R_USER_SECTION.COMPANY_ID
+			, R_USER_SECTION.SECTION_ID
+			, R_USER_SECTION.SECTION_NAME
+			, R_CUCM_USER_PHONE.APP_USER_ID
+	</sql>
+
+	<!-- ユーザー追加一覧件数取得 -->
+	<select id="getUserAddTotal" parameterType="AddUserModel" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			(
+			<include refid="selectAddUser"/>
+			) V_SEARCH_INFO
+	</select>
+
+	<!-- ユーザー追加一覧取得 -->
+	<select id="getUserAddList" parameterType="AddUserModel" resultType="AddUserResultModel">
+		SELECT
+			  V_INFO.userId        AS userId
+			, V_INFO.userKanjiName AS userKanjiName
+			, V_INFO.userKanaName  AS userKanaName
+			, V_INFO.companyId     AS companyId
+			, V_INFO.sectionId     AS sectionId
+			, V_INFO.sectionName   AS sectionName
+			, V_INFO.retainTelStatus     AS retainTelStatus
+			, V_INFO.retainTelStatusName AS retainTelStatusName
+		FROM
+			(
+			SELECT
+				  V_SEARCH_INFO.userId        AS userId
+				, V_SEARCH_INFO.userKanjiName AS userKanjiName
+				, V_SEARCH_INFO.userKanaName  AS userKanaName
+				, V_SEARCH_INFO.companyId     AS companyId
+				, V_SEARCH_INFO.sectionId     AS sectionId
+				, V_SEARCH_INFO.sectionName   AS sectionName
+				, V_SEARCH_INFO.retainTelStatus      AS retainTelStatus
+				, V_SEARCH_INFO.retainTelStatusName  AS retainTelStatusName
+				, ROW_NUMBER() OVER (ORDER BY ( ${sort} ) ${order}) AS ROW_NUMBER		<!-- ソード順 -->
+			FROM
+				(
+				<include refid="selectAddUser"/>
+				) V_SEARCH_INFO
+			) V_INFO
+		WHERE
+			V_INFO.ROW_NUMBER BETWEEN #{start} AND #{end}
+	</select>
+
+	<!-- ユーザーと電話機の削除フラグを取得 -->
+	<select id="getUserTelDeleteFlg" parameterType="AddTelLineUserUpdateModel" resultType="String">
+		SELECT
+			R_CUCM_USER_PHONE.DELETED AS deleted
+		FROM
+			R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+		WHERE
+			R_CUCM_USER_PHONE.APP_USER_ID   = #{userId}
+		AND R_CUCM_USER_PHONE.CUCM_PHONE_ID = #{telId}
+	</select>
+
+</mapper>

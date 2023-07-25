@@ -1,0 +1,30 @@
+局面			詳細設計						クライアント名／プロジェクト名							SMBC日興/IP電話EOL											頁		
+機能名			CUCMメンテナンスシステム																			作成日			2023/04/01		作成者		PISE 髙田
+資料名			TRN_電話機																			更新日					更新者		
+エンティティ一覧へ				ER図へ		CRUD図(オンライン)へ				CRUD図(バッチ)へ																			
+テーブル名称					TRN_電話機												データベース名						irdb				スキーマ名		public
+テーブルID					trn_phone												レコードサイズ										文字コード		Shift-JIS
+																													
+NO	Key	項目論理名						項目物理名									データ型		桁数	NULL	UNIQUE	初期値		増分	上限値	サイクル	備考		
+1	PK	電話ID						phone_id									INTEGER							1		〇	自動採番		
+2		拠点ID						branch_id									INTEGER												
+3		店部課ID						section_id									INTEGER												
+4		デバイスプールID						device_pool_id									INTEGER												
+5		電話テンプレートID						phone_template_id									INTEGER												
+6		コーリングサーチスペースID						calling_search_space_id									INTEGER												
+7		ロケーションID						location_id									INTEGER												
+8		デバイスタイプID						device_type_id									INTEGER												
+9		オーナーユーザーID						owner_user_id									INTEGER			〇							BATファイルの値を格納		
+10		デバイス名						device_nm									VARCHAR		25		〇						BATファイルの値を格納		
+11		ユーザーロケール						user_locale									VARCHAR		50	〇							BATファイルの値を格納		
+12		ビルトインブリッジ						built_in_bridge									VARCHAR		7	〇							BATファイルの値を格納		
+13		プライバシー						privacy									VARCHAR		7	〇							BATファイルの値を格納　固定なら必要ないかも		
+14		拡張モジュール１						addon_module_id_1									INTEGER			〇							MST_CUCM_デバイスタイプ.デバイスタイプID		
+15		拡張モジュール２						addon_module_id_2									INTEGER			〇							MST_CUCM_デバイスタイプ.デバイスタイプID		
+16		拡張モジュール３						addon_module_id_3									INTEGER			〇							MST_CUCM_デバイスタイプ.デバイスタイプID		
+17		スピードダイアル						speed_dial									JSONB										BATファイルの値を格納　JSON形式でまとめて格納		
+18		備考						remarks									TEXT			〇							画面表示項目の「備考（電話機の設置場所）」		
+19		更新ステータス						update_status									VARCHAR		1			0					0：更新済み、1：更新待ち		
+20		削除フラグ						delete_flg									VARCHAR		1			0					0：未削除、1：削除済		
+21		作成日時						create_date									TIMESTAMP					現在日時							
+22		更新日時						update_date									TIMESTAMP					現在日時							

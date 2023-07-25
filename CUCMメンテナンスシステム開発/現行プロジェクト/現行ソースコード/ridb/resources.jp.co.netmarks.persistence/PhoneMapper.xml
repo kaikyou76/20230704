@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.PhoneMapper">
+
+	<!-- 登録処理 -->
+	<insert id="insertPhone" parameterType="PhoneEntity">
+		INSERT INTO cucm_phone(
+			cucm_phone_id
+			, phone_product_name
+			, mac_address
+			, description
+			, calling_search_space_name
+			, location_name
+			, device_pool_name
+			, phone_button_template_name
+			, addon_module_name_1
+			, addon_module_name_2
+			, company_id
+			, section_id
+			, branch_id
+			, owner_user_id
+			, cucm_update_request_flag
+			, deleted
+			, error_flg
+			, creation_datetime
+			, lastupdate_datetime
+		)
+		VALUES (
+			#{cucmPhoneId}
+			, #{phoneProductName}
+			, #{macAddress}
+			, #{description}
+			, #{callingSearchSpaceName}
+			, #{locationName}
+			, #{devicePoolName}
+			, #{phoneButtonTemplateName}
+			, #{addonModuleName1}
+			, #{addonModuleName2}
+			, #{companyId}
+			, #{sectionId}
+			, #{branchId}
+			, #{ownerUserId}
+			, #{cucmUpdateRequestFlag}
+			, #{deleted}
+			, #{errorFlg}
+			, #{crtTmstmp}
+			, #{lstupdtTmstmp}
+		)
+	</insert>
+
+	<!-- 更新処理（個別反映、翌日反映） -->
+	<update id="updatePhoneReflect" parameterType="PhoneEntity">
+		UPDATE cucm_phone
+		SET
+			 PHONE_PRODUCT_NAME = #{phoneProductName}
+			, MAC_ADDRESS = #{macAddress}
+			, CALLING_SEARCH_SPACE_NAME = #{callingSearchSpaceName}
+			, LOCATION_NAME = #{locationName}
+			, DEVICE_POOL_NAME = #{devicePoolName}
+			, PHONE_BUTTON_TEMPLATE_NAME = #{phoneButtonTemplateName}
+			, ADDON_MODULE_NAME_1 = #{addonModuleName1}
+			, ADDON_MODULE_NAME_2 = #{addonModuleName2}
+			, COMPANY_ID = #{companyId}
+			, SECTION_ID = #{sectionId}
+			, BRANCH_ID = #{branchId}
+			, CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+			, LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+			CUCM_PHONE_ID = #{cucmPhoneId}
+	</update>
+
+	<!-- 削除フラグを更新します -->
+	<update id="updatePhoneDelete" parameterType="PhoneEntity">
+		UPDATE CUCM_PHONE SET
+			CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+			, DELETED                = #{deleted}
+			, LASTUPDATE_DATETIME    = #{lstupdtTmstmp}
+		WHERE
+			CUCM_PHONE_ID = #{cucmPhoneId}
+	</update>
+
+	<!-- 更新フラグを更新します。 -->
+	<update id="updatePhoneUpdateFlag"  parameterType="PhoneEntity">
+		UPDATE CUCM_PHONE SET
+			CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+			, LASTUPDATE_DATETIME    = #{lstupdtTmstmp}
+		WHERE
+			CUCM_PHONE_ID = #{cucmPhoneId}
+	</update>
+
+	<!-- CUCM取込処理 -->
+	<update id="updatePhoneFetchCucm" parameterType="PhoneEntity">
+		UPDATE CUCM_PHONE
+		SET
+			 DESCRIPTION                 = #{description}
+			, PHONE_BUTTON_TEMPLATE_NAME = #{phoneButtonTemplateName}
+			, ADDON_MODULE_NAME_1        = #{addonModuleName1}
+			, ADDON_MODULE_NAME_2        = #{addonModuleName2}
+			, LASTUPDATE_DATETIME        = #{lstupdtTmstmp}
+		WHERE
+			CUCM_PHONE_ID = #{cucmPhoneId}
+	</update>
+
+	<!-- 電話機に該当するオーナーユーザーの更新 -->
+	<update id="updatePhoneOwnerUser" parameterType="PhoneEntity">
+		UPDATE CUCM_PHONE SET
+		  CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+		  , OWNER_USER_ID = (SELECT
+								APP_USER.CUCM_LOGIN_ID
+							FROM
+								R_CUCM_USER_PHONE INNER JOIN APP_USER
+								ON R_CUCM_USER_PHONE.APP_USER_ID = APP_USER.APP_USER_ID
+							WHERE
+								R_CUCM_USER_PHONE.CUCM_PHONE_ID = #{cucmPhoneId}
+							AND R_CUCM_USER_PHONE.DELETED       = #{constants.COM_FLG_OFF}
+							AND APP_USER.ENABLED_SHARED_USE     = #{constants.ENABLED_SHARED_USE_PRIVATE}
+							ORDER BY
+								APP_USER.APP_USER_ID
+							OFFSET 0 LIMIT 1 )
+		  , LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+
+		WHERE
+		  CUCM_PHONE_ID = #{cucmPhoneId}
+	</update>
+
+	<!-- 削除予約フラグに該当する電話機のオーナーユーザーの更新 -->
+	<update id="updatePhoneOwnerUserReserveDelete" parameterType="MAP">
+		UPDATE CUCM_PHONE SET
+		  CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+		  , OWNER_USER_ID = (SELECT
+								APP_USER.CUCM_LOGIN_ID
+							FROM
+								R_CUCM_USER_PHONE INNER JOIN APP_USER
+									ON R_CUCM_USER_PHONE.APP_USER_ID = APP_USER.APP_USER_ID
+								INNER JOIN R_USER_SECTION R_USER_SECTION
+									ON R_USER_SECTION.APP_USER_ID = R_CUCM_USER_PHONE.APP_USER_ID
+									AND R_USER_SECTION.COMPANY_ID = R_CUCM_USER_PHONE.COMPANY_ID
+									AND R_USER_SECTION.SECTION_ID = R_CUCM_USER_PHONE.SECTION_ID
+							WHERE
+								R_CUCM_USER_PHONE.CUCM_PHONE_ID = CUCM_PHONE.CUCM_PHONE_ID
+							AND R_CUCM_USER_PHONE.DELETED       = #{COM_FLG_OFF}
+							AND APP_USER.ENABLED_SHARED_USE     = #{ENABLED_SHARED_USE_PRIVATE}
+							AND R_USER_SECTION.DELETE_RESERVE   = #{COM_FLG_OFF}
+							ORDER BY
+								APP_USER.APP_USER_ID
+							OFFSET 0 LIMIT 1 )
+		  , LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+		EXISTS(
+			SELECT
+				1
+			FROM
+				R_USER_SECTION R_USER_SECTION INNER JOIN R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+					ON R_USER_SECTION.APP_USER_ID = R_CUCM_USER_PHONE.APP_USER_ID
+					AND R_USER_SECTION.COMPANY_ID = R_CUCM_USER_PHONE.COMPANY_ID
+					AND R_USER_SECTION.SECTION_ID = R_CUCM_USER_PHONE.SECTION_ID
+			WHERE
+				R_USER_SECTION.APP_USER_ID      = #{appUserId}
+			AND R_USER_SECTION.DELETE_RESERVE   = #{COM_FLG_ON}
+			AND R_CUCM_USER_PHONE.DELETED       = #{COM_FLG_OFF}
+			AND R_CUCM_USER_PHONE.CUCM_PHONE_ID = CUCM_PHONE.CUCM_PHONE_ID
+		)
+	</update>
+
+
+</mapper>

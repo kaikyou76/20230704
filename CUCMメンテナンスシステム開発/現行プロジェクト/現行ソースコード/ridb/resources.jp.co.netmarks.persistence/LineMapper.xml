@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.LineMapper">
+
+	<!-- ライン情報の登録 -->
+	<insert id="insertLine" parameterType="LineEntity">
+		INSERT INTO CUCM_LINE(
+			  CUCM_LINE_ID
+			, DIRECTORY_NUMBER
+			, FWD_ALL_CSS
+			, FWD_BUSY_DESTINATION
+			, FWD_BUSY_CSS
+			, FWD_NOANS_DESTINATION
+			, FWD_NOANS_CSS
+			, CALL_PICKUP_GROUP_NAME
+			, USE_VM_FLG
+			, CUCM_UPDATE_REQUEST_FLAG
+			, DELETED
+			, ERROR_FLG
+			, CREATION_DATETIME
+			, LASTUPDATE_DATETIME
+		) VALUES (
+			  #{cucmLineId}
+			, #{directoryNumber}
+			, #{fwdAllCss}
+			, #{fwdBusyDestination}
+			, #{fwdBusyCss}
+			, #{fwdNoansDestination}
+			, #{fwdNoansCss}
+			, #{callPickupGroupName}
+			, #{useVmFlg}
+			, #{cucmUpdateRequestFlag}
+			, #{deleted}
+			, #{errorFlg}
+			, #{crtTmstmp}
+			, #{lstupdtTmstmp}
+		)
+	</insert>
+
+	<!-- ライン情報の更新 -->
+	<update id="updateLineReflect" parameterType="LineEntity">
+		UPDATE CUCM_LINE
+		SET
+			  FWD_ALL_CSS              = #{fwdAllCss}
+			, FWD_BUSY_DESTINATION     = #{fwdBusyDestination}
+			, FWD_BUSY_CSS             = #{fwdBusyCss}
+			, FWD_NOANS_DESTINATION    = #{fwdNoansDestination}
+			, FWD_NOANS_CSS            = #{fwdNoansCss}
+			, CALL_PICKUP_GROUP_NAME   = #{callPickupGroupName}
+			, USE_VM_FLG               = #{useVmFlg}
+			, CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+			, DELETED                  = #{deleted}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+		  CUCM_LINE_ID = #{cucmLineId}
+	</update>
+
+	<!-- ライン情報の更新() -->
+	<update id="updateLineVmFlg" parameterType="LineEntity">
+		UPDATE CUCM_LINE
+		SET
+			  USE_VM_FLG               = #{useVmFlg}
+			, CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+			, DELETED                  = #{deleted}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+		  CUCM_LINE_ID = #{cucmLineId}
+	</update>
+
+	<!-- ライン情報の削除更新（Updateフラグ更新あり） -->
+	<update id="updateLineDelete" parameterType="LineEntity">
+		UPDATE CUCM_LINE
+		SET
+			  CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+			, DELETED                  = #{deleted}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+		  CUCM_LINE_ID = #{cucmLineId}
+	</update>
+	
+	<!-- ライン情報の削除更新（Updateフラグ更新なし） -->
+	<update id="updateLineDeleteOnly" parameterType="LineEntity">
+		UPDATE CUCM_LINE
+		SET
+			  DELETED                  = #{deleted}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+		  CUCM_LINE_ID = #{cucmLineId}
+	</update>
+
+	<!-- 話中転送先変更 -->
+	<update id="updateBusyDestination" parameterType="LineEntity">
+		UPDATE CUCM_LINE
+		SET
+			FWD_BUSY_DESTINATION       = #{fwdBusyDestination}
+			, CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+			DIRECTORY_NUMBER = #{directoryNumber}
+		AND DELETED          = #{constants.COM_FLG_OFF}
+	</update>
+
+	<!-- 変更した電話機に該当するCSS項目の更新（条件：電話ID） -->
+	<update id="updateLineCssPhone" parameterType="Map">
+		UPDATE CUCM_LINE
+		SET
+			FWD_ALL_CSS     = V_CSS.CALLING_SEARCH_SPACE_NAME
+			, FWD_BUSY_CSS  = V_CSS.CALLING_SEARCH_SPACE_NAME
+			, FWD_NOANS_CSS = V_CSS.CALLING_SEARCH_SPACE_NAME
+			, CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		FROM
+			(
+			SELECT
+				V_TEL_LINE.CUCM_LINE_ID						<!-- ラインID -->
+				,V_TEL_LINE.CALLING_SEARCH_SPACE_NAME		<!-- CSS -->
+			FROM
+				(SELECT
+					R_CUCM_PHONE_LINE.CUCM_LINE_ID			<!-- ラインID -->
+					,CUCM_PHONE.CALLING_SEARCH_SPACE_NAME	<!-- CSS -->
+					, ROW_NUMBER() OVER (
+						PARTITION BY R_CUCM_PHONE_LINE.CUCM_LINE_ID
+							ORDER BY R_CUCM_PHONE_LINE.INDEX, CUCM_PHONE.CUCM_PHONE_ID) AS ROW_NUM
+				FROM
+					R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE 	<!-- 電話－ライン -->
+					INNER JOIN CUCM_PHONE CUCM_PHONE		<!-- 電話 -->
+						ON R_CUCM_PHONE_LINE.CUCM_PHONE_ID = CUCM_PHONE.CUCM_PHONE_ID
+					INNER JOIN
+						(
+						SELECT
+							R_CUCM_PHONE_LINE.CUCM_LINE_ID	<!-- ライン -->
+						FROM
+							CUCM_PHONE CUCM_PHONE 			<!-- 電話 -->
+							INNER JOIN R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE	<!-- 電話－ライン -->
+								ON CUCM_PHONE.CUCM_PHONE_ID = R_CUCM_PHONE_LINE.CUCM_PHONE_ID
+						WHERE
+							CUCM_PHONE.DELETED        = #{COM_FLG_OFF}	<!-- 削除フラグ -->
+						AND R_CUCM_PHONE_LINE.DELETED = #{COM_FLG_OFF}	<!-- 削除フラグ -->
+						AND	CUCM_PHONE.CUCM_PHONE_ID  = #{cucmPhoneId}	<!-- 電話番号 -->
+						GROUP BY
+							R_CUCM_PHONE_LINE.CUCM_LINE_ID
+						ORDER BY
+							R_CUCM_PHONE_LINE.CUCM_LINE_ID
+						)V_LINE
+						ON R_CUCM_PHONE_LINE.CUCM_LINE_ID = V_LINE.CUCM_LINE_ID
+				) V_TEL_LINE
+			WHERE
+				V_TEL_LINE.ROW_NUM = 1
+			) V_CSS
+		WHERE
+			CUCM_LINE.CUCM_LINE_ID = V_CSS.CUCM_LINE_ID
+		AND CUCM_LINE.DELETED      = #{COM_FLG_OFF}
+	</update>
+
+	<!-- 変更した電話機に該当するCSS項目の更新（条件：LineId） -->
+	<update id="updateLineCssLine">
+		UPDATE CUCM_LINE
+		SET
+			FWD_ALL_CSS     = V_CSS.CALLING_SEARCH_SPACE_NAME
+			, FWD_BUSY_CSS  = V_CSS.CALLING_SEARCH_SPACE_NAME
+			, FWD_NOANS_CSS = V_CSS.CALLING_SEARCH_SPACE_NAME
+			, CUCM_UPDATE_REQUEST_FLAG = #{cucmUpdateRequestFlag}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		FROM
+			(
+			SELECT
+				V_TEL_LINE.CUCM_LINE_ID
+				, V_TEL_LINE.CALLING_SEARCH_SPACE_NAME
+			FROM
+				(
+				SELECT
+					R_CUCM_PHONE_LINE.CUCM_LINE_ID AS CUCM_LINE_ID
+					, CUCM_PHONE.CALLING_SEARCH_SPACE_NAME AS CALLING_SEARCH_SPACE_NAME
+					, ROW_NUMBER() OVER (
+										PARTITION BY R_CUCM_PHONE_LINE.CUCM_LINE_ID
+											ORDER BY R_CUCM_PHONE_LINE.INDEX, CUCM_PHONE.CUCM_PHONE_ID) AS ROW_NUM
+				FROM
+					R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE INNER JOIN CUCM_PHONE CUCM_PHONE
+						ON  R_CUCM_PHONE_LINE.CUCM_PHONE_ID = CUCM_PHONE.CUCM_PHONE_ID
+				WHERE
+					CUCM_PHONE.DELETED             = #{COM_FLG_OFF}	<!-- 削除フラグ -->
+				AND R_CUCM_PHONE_LINE.DELETED      = #{COM_FLG_OFF}	<!-- 削除フラグ -->
+				AND R_CUCM_PHONE_LINE.CUCM_LINE_ID = #{cucmLineId}	<!-- 電話ID -->
+				)V_TEL_LINE
+			where
+				V_TEL_LINE.ROW_NUM = 1
+			) V_CSS
+		WHERE
+			CUCM_LINE.CUCM_LINE_ID = V_CSS.CUCM_LINE_ID
+		AND CUCM_LINE.DELETED      = #{COM_FLG_OFF}
+	</update>
+
+	<!-- CUCM取込処理 -->
+	<update id="updateLineFetchCucm" parameterType="LineEntity">
+		UPDATE CUCM_LINE
+		SET
+			  FWD_BUSY_DESTINATION     = #{fwdBusyDestination}
+			, FWD_NOANS_DESTINATION    = #{fwdNoansDestination}
+			, USE_VM_FLG               = #{useVmFlg}
+			, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+		  CUCM_LINE_ID = #{cucmLineId}
+	</update>
+
+</mapper>

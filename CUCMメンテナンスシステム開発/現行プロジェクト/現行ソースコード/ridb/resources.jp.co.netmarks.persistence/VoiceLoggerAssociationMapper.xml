@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.VoiceLoggerAssociationMapper">
+
+	<!-- 登録処理 -->
+	<insert id="inertVoiceLoggerAssociation" parameterType="VoiceLoggerAssociationEntity">
+		INSERT INTO VOICE_LOGGER_ASSOCIATION(
+			CUCM_LINE_ID
+			, STATUS_CODE
+			, ASSOCIATE_CODE
+			, LOGGER_DATA
+			, DELETED
+			, CREATION_DATETIME
+			, LASTUPDATE_DATETIME
+		)
+		VALUES (
+			#{cucmLineId}
+			, #{statusCode}
+			, #{associateCode}
+			, #{loggerData}
+			, #{deleted}
+			, #{crtTmstmp}
+			, #{lstupdtTmstmp}
+		)
+	</insert>
+
+	<!-- 更新処理 -->
+	<update id="updateVoiceLoggerAssociation" parameterType="VoiceLoggerAssociationEntity">
+		UPDATE VOICE_LOGGER_ASSOCIATION
+		SET
+		  LOGGER_DATA              = #{loggerData}
+		, DELETED                  = #{deleted}
+		, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+		CUCM_LINE_ID = #{cucmLineId}
+	</update>
+
+	<!-- 更新削除処理 -->
+	<update id="updateVoiceLoggerAssociationDelete" parameterType="VoiceLoggerAssociationEntity">
+		UPDATE VOICE_LOGGER_ASSOCIATION
+		SET
+		  DELETED                  = #{deleted}
+		, LASTUPDATE_DATETIME      = #{lstupdtTmstmp}
+		WHERE
+		CUCM_LINE_ID = #{cucmLineId}
+	</update>
+
+
+
+</mapper>
+

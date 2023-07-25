@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.SectionBranchMapper">
+
+	<!-- ### INSERT ### -->
+	<!-- 拠点-店部課紐付き登録処理 -->
+	<insert id="insertSectionBranch" parameterType="SectionBranchEntity" >
+		INSERT INTO R_SECTION_BRANCH(
+					  BRANCH_ID
+					, COMPANY_ID
+					, SECTION_ID
+					, CREATION_DATETIME
+					, LASTUPDATE_DATETIME
+			) VALUES (
+					  #{branchId}
+					, #{companyId}
+					, #{sectionId}
+					, #{crtTmstmp}
+					, #{lstupdtTmstmp}
+			)
+	</insert>
+
+	<!-- ### DELETE ### -->
+	<!-- 拠点-店部課紐付き削除処理 -->
+	<delete id="deleteSectionBranch" parameterType="SectionBranchEntity">
+		DELETE FROM R_SECTION_BRANCH R_SECTION_BRANCH
+		WHERE R_SECTION_BRANCH.BRANCH_ID = #{branchId}
+		AND R_SECTION_BRANCH.COMPANY_ID = #{companyId}
+		AND R_SECTION_BRANCH.SECTION_ID = #{sectionId}
+	</delete>
+</mapper>

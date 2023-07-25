@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.IndividualLineMapper">
+
+ <!-- 対象データ取得(ライン) -->
+	<select id="selectLineInfo" parameterType="Map" resultType="Map">
+		select
+			line.cucm_line_id as lineid,
+			line.directory_number as directno,
+			line.fwd_all_css as allcss,
+			line.fwd_busy_destination as busyno,
+			line.fwd_busy_css as busycss,
+			line.fwd_noans_destination as noansno,
+			line.fwd_noans_css as noanscss,
+			line.call_pickup_group_name as pickupnm,
+			line.use_vm_flg as vmflg,
+			line.cucm_update_request_flag as updflg,
+			line.deleted as delflg,
+			line.error_flg as errflg,
+			cluster.line_pkid as pkid,
+			rpl.external_phone_number_mask as expnummask,
+			rpl.index as index,
+			rpl.ringsetting_name as ringnm,
+			rpl.line_text_label as linelabel,
+			phone.phone_product_name as product
+		from cucm_line line left outer join line_reflected_cluster cluster
+			 on(line.cucm_line_id = cluster.cucm_line_id)
+			 left outer join r_cucm_phone_line rpl
+			 on(line.cucm_line_id = rpl.cucm_line_id)
+			 left outer join cucm_phone phone
+			 on(phone.cucm_phone_id = rpl.cucm_phone_id)
+		where line.cucm_line_id =  #{lineid}
+	</select>
+
+<!-- ライン情報関連削除 -->
+	<delete id="deleteLineInfo" parameterType="Map" >
+		delete from tel_dir_association where cucm_line_id =  #{lineid};
+		delete from charge_association where cucm_line_id = #{lineid};
+		delete from voice_logger_association where cucm_line_id = #{lineid};
+		delete from cucm_line where cucm_line_id = #{lineid};
+	</delete>
+
+<!-- 追加処理成功時更新 -->
+	<update id="addSuccessUpdLine" parameterType="Map">
+		update cucm_line
+		set
+			lastupdate_datetime = now(),
+			cucm_update_request_flag = '0',
+			error_flg = '0'
+		where cucm_line_id = #{lineid}
+	</update>
+
+<!-- Lineクラスタ削除 -->
+	<delete id="deleteLineCluster" parameterType="Map" >
+		delete from line_reflected_cluster
+		where cucm_line_id = #{lineid}
+		  and cluster_id = #{clusterid}
+	</delete>
+
+<!-- Lineクラスタ追加 -->
+	<insert id="insertLineCluster" parameterType="Map">
+		insert into line_reflected_cluster (
+			cucm_line_id,
+			cluster_id,
+			line_pkid,
+			creation_datetime,
+			lastupdate_datetime
+		) values (
+			#{lineid},
+			#{clusterid},
+			#{lineuuid},
+			now(),
+			now()
+		)
+	</insert>
+
+
+
+ <!-- 対象データ取得(Lineと電話機 紐付) -->
+	<select id="selectPhoneLineInfo" parameterType="Map" resultType="Map">
+		select
+			line.cucm_line_id as lineid,
+			line.directory_number as directno,
+			line.fwd_all_css as allcss,
+			line.fwd_busy_destination as busyno,
+			line.fwd_busy_css as busycss,
+			line.fwd_noans_destination as noansno,
+			line.fwd_noans_css as noanscss,
+			line.call_pickup_group_name as pickupnm,
+			line.use_vm_flg as vmflg,
+			line.deleted as linedelflg,
+			rpl.cucm_update_request_flag as updflg,
+			rpl.deleted as delflg,
+			rpl.error_flg as errflg,
+			cluster.line_pkid as pkid,
+			cluster.cluster_id as linecluster,
+			rpl.external_phone_number_mask as expnummask,
+			rpl.index as index,
+			rpl.ringsetting_name as ringnm,
+			rpl.line_text_label as linelabel,
+			phone.mac_address as macaddress,
+			phone.addon_module_name_1 as addmod1,
+			phone.addon_module_name_2 as addmod2,
+			phone.branch_id as branchid,
+			phone.company_id as companyid,
+			phone.calling_search_space_name as css,
+			phone.description as desc,
+			phone.device_pool_name as poolnm,
+			phone.location_name as location,
+			phone.phone_button_template_name as phonetmp,
+			phone.phone_product_name as product,
+			phone.section_id as sectionid,
+			phone.owner_user_id as ownerid
+		from cucm_line line left outer join line_reflected_cluster cluster
+			 on(line.cucm_line_id = cluster.cucm_line_id)
+			 left outer join r_cucm_phone_line rpl
+			 on(line.cucm_line_id = rpl.cucm_line_id)
+			 left outer join cucm_phone phone
+			 on(phone.cucm_phone_id = rpl.cucm_phone_id)
+		where  (rpl.cucm_update_request_flag = '1'
+		or      rpl.cucm_update_request_flag = '2')
+		and    phone.cucm_phone_id = #{phoneid}
+	</select>
+
+<!-- 追加処理成功時削除 -->
+	<delete id="delRCucmPhoneLine" parameterType="Map" >
+		delete from r_cucm_phone_line
+		where cucm_phone_id = #{phoneid}
+		and cucm_line_id = #{lineid}
+		and deleted = '1'
+	</delete>
+
+<!-- 追加処理成功時削除 -->
+	<delete id="deleteTelDir" parameterType="Map" >
+		delete from tel_dir_association
+		where cucm_phone_id = #{phoneid}
+		and cucm_line_id = #{lineid}
+		and deleted = '1'
+	</delete>
+
+<!-- 追加処理成功時更新 -->
+	<update id="updRCucmPhoneLine" parameterType="Map">
+		update r_cucm_phone_line
+		set
+			lastupdate_datetime = now(),
+			cucm_update_request_flag = '0',
+			error_flg = '0'
+		where cucm_phone_id = #{phoneid}
+		and cucm_line_id = #{lineid}
+	</update>
+
+	<!-- Line追加処理Error時更新 -->
+	<update id="updateErrorLine" parameterType="Map">
+		UPDATE cucm_line
+		set
+			lastupdate_datetime = now(),
+			cucm_update_request_flag = '1',
+			error_flg = '1'
+		WHERE
+			cucm_line_id = #{lineid}
+	</update>
+
+	<!-- Phone to Line 処理Error時更新 -->
+	<update id="updateErrorPhoneLine" parameterType="Map">
+		update r_cucm_phone_line
+		set
+			lastupdate_datetime = now(),
+			cucm_update_request_flag = '1',
+			error_flg = '1'
+		where
+			cucm_phone_id = #{phoneid}
+		  and
+		    cucm_line_id = #{lineid}
+	</update>
+</mapper>

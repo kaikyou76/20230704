@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.co.netmarks.persistence.AddLineMapper">
+
+	<!-- ライン追加一覧情報 -->
+	<sql id="selectAddLine">
+		SELECT
+			CUCM_LINE.CUCM_LINE_ID       AS lineId							<!-- ラインID -->
+			, CUCM_LINE.DIRECTORY_NUMBER AS directoryNumber				<!-- 内線番号 -->
+			, COALESCE(CUCM_LINE.FWD_BUSY_DESTINATION,'')   AS busyDestination		<!-- 話中転送先 -->
+			, COALESCE(CUCM_LINE.FWD_NOANS_DESTINATION,'')  AS noansDestination		<!-- 不応答転送先 -->
+			, COALESCE(CUCM_LINE.CALL_PICKUP_GROUP_NAME,'') AS pickupGroupName		<!-- ピックアップグループ名 -->
+			, CUCM_LINE.USE_VM_FLG       AS voiceMailFlg						<!-- VMフラグ -->
+			, CASE
+				WHEN CUCM_LINE.USE_VM_FLG = #{constants.VOICE_MAIL_FLG_OFF} THEN #{constants.COM_FLG_OFF_MARK}
+				WHEN CUCM_LINE.USE_VM_FLG = #{constants.VOICE_MAIL_FLG_ON}  THEN #{constants.COM_FLG_ON_MARK}
+			  END AS voiceMailFlgName									<!-- VMフラグ（画面表示用） -->
+			, VOICE_LOGGER_ASSOCIATION.LOGGER_DATA AS loggerData		<!-- LoggerData -->
+			, CHARGE_ASSOCIATION.BRANCH_ID AS chargeAssociationBranchId					<!-- 拠点ID（課金） -->
+			, CHARGE_ASSOCIATION.PARENT_SECTION_ID AS chargeAssociationParentSectionId	<!-- 親店部課（課金） -->
+			, CHARGE_ASSOCIATION.SECTION_ID AS chargeAssociationSectionId				<!-- 店部課（課金） -->
+		FROM
+			CUCM_LINE CUCM_LINE
+				INNER JOIN CHARGE_ASSOCIATION CHARGE_ASSOCIATION
+					ON CUCM_LINE.CUCM_LINE_ID = CHARGE_ASSOCIATION.CUCM_LINE_ID
+				INNER JOIN VOICE_LOGGER_ASSOCIATION VOICE_LOGGER_ASSOCIATION
+					ON CUCM_LINE.CUCM_LINE_ID = VOICE_LOGGER_ASSOCIATION.CUCM_LINE_ID
+		WHERE
+			CUCM_LINE.DELETED = #{constants.COM_FLG_OFF}
+		AND CHARGE_ASSOCIATION.DELETED = #{constants.COM_FLG_OFF}
+		AND VOICE_LOGGER_ASSOCIATION.DELETED = #{constants.COM_FLG_OFF}
+		<!-- 内線番号 -->
+		<if test=" addLineDirectoryNumber != null and addLineDirectoryNumber != '' ">
+			AND CUCM_LINE.DIRECTORY_NUMBER like #{addLineDirectoryNumber}
+		</if>
+	</sql>
+
+	<!-- ライン追加一覧件数取得 -->
+	<select id="getLineAddTotal" parameterType="AddLineModel" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			(
+			<include refid="selectAddLine"/>
+			) V_SEARCH_INFO
+	</select>
+
+	<!-- ライン追加一覧取得 -->
+	<select id="getLineAddList" parameterType="AddLineModel" resultType="AddLineResultModel">
+		SELECT
+			V_INFO.lineId                      AS lineId						<!-- ラインID -->
+			, V_INFO.directoryNumber           AS directoryNumber				<!-- 内線番号 -->
+			, V_INFO.busyDestination           AS busyDestination				<!-- 話中転送先 -->
+			, V_INFO.noansDestination          AS noansDestination				<!-- 不応答転送先 -->
+			, V_INFO.pickupGroupName           AS pickupGroupName				<!-- ピックアップグループ名 -->
+			, V_INFO.voiceMailFlg              AS voiceMailFlg					<!-- VMフラグ -->
+			, V_INFO.voiceMailFlgName          AS voiceMailFlgName				<!-- VMフラグ（画面表示用） -->
+			, V_INFO.loggerData                AS loggerData					<!-- LoggerData -->
+			, V_INFO.chargeAssociationBranchId AS chargeAssociationBranchId		<!-- 拠点ID（課金） -->
+			, V_INFO.chargeAssociationParentSectionId AS chargeAssociationParentSectionId	<!-- 親店部課（課金） -->
+			, V_INFO.chargeAssociationSectionId       AS chargeAssociationSectionId			<!-- 店部課（課金） -->
+			, V_INFO.chargeAssociationBranchId || '-' ||
+			  V_INFO.chargeAssociationParentSectionId || '-' ||
+			  V_INFO.chargeAssociationSectionId       AS chargeAssociationPlace	<!-- 拠点－親店部課－店部課（課金） -->
+		FROM
+			(
+			SELECT
+				V_SEARCH_INFO.lineId             AS lineId						<!-- ラインID -->
+				, V_SEARCH_INFO.directoryNumber  AS directoryNumber				<!-- 内線番号 -->
+				, V_SEARCH_INFO.busyDestination  AS busyDestination				<!-- 話中転送先 -->
+				, V_SEARCH_INFO.noansDestination AS noansDestination			<!-- 不応答転送先 -->
+				, V_SEARCH_INFO.pickupGroupName  AS pickupGroupName				<!-- ピックアップグループ名 -->
+				, V_SEARCH_INFO.voiceMailFlg     AS voiceMailFlg				<!-- VMフラグ -->
+				, V_SEARCH_INFO.voiceMailFlgName AS voiceMailFlgName			<!-- VMフラグ（画面表示用） -->
+				, V_SEARCH_INFO.loggerData       AS loggerData					<!-- LoggerData -->
+				, V_SEARCH_INFO.chargeAssociationBranchId        AS chargeAssociationBranchId			<!-- 拠点ID（課金） -->
+				, V_SEARCH_INFO.chargeAssociationParentSectionId AS chargeAssociationParentSectionId	<!-- 親店部課（課金） -->
+				, V_SEARCH_INFO.chargeAssociationSectionId       AS chargeAssociationSectionId			<!-- 店部課（課金） -->
+				, ROW_NUMBER() OVER (ORDER BY (${sort}) ${order}) AS ROW_NUMBER	<!-- ソード順 -->
+			FROM
+				(
+				<include refid="selectAddLine"/>
+				) V_SEARCH_INFO
+			) V_INFO
+		WHERE
+			V_INFO.ROW_NUMBER BETWEEN #{start} AND #{end}
+	</select>
+
+</mapper>

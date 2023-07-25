@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.TelDirAssociationMapper">
+
+	<!-- TEL_DIR_DATAの登録を行います -->
+	<insert id="insertTelDirData" parameterType="TelDirAssociationEntity">
+		INSERT INTO TEL_DIR_ASSOCIATION(
+			TEL_DIR_ASSOCIATION_ID
+			, CUCM_PHONE_ID
+			, CUCM_LINE_ID
+			, APP_USER_ID
+			, STATUS_CODE
+			, ASSOCIATE_CODE
+			, TEL_DIR_DATA
+			, DELETED
+			, CREATION_DATETIME
+			, LASTUPDATE_DATETIME
+		) VALUES (
+			#{telDirAssociationId}
+			, #{cucmPhoneId}
+			, #{cucmLineId}
+			, #{appUserId}
+			, #{statusCode}
+			, #{associateCode}
+			, #{telDirData}
+			, #{deleted}
+			, #{crtTmstmp}
+			, #{lstupdtTmstmp}
+		)
+	</insert>
+
+	<!-- TEL_DIR_DATAの登録を行います -->
+	<insert id="insertTelDirDataTelLine" parameterType="TelDirAssociationEntity">
+		INSERT INTO TEL_DIR_ASSOCIATION(
+			TEL_DIR_ASSOCIATION_ID
+			, CUCM_PHONE_ID
+			, CUCM_LINE_ID
+			, APP_USER_ID
+			, STATUS_CODE
+			, ASSOCIATE_CODE
+			, TEL_DIR_DATA
+			, DELETED
+			, CREATION_DATETIME
+			, LASTUPDATE_DATETIME
+		) SELECT
+			NEXTVAL('TEL_DIR_ASSOCIATION_TEL_DIR_ASSOCIATION_ID_SEQ')
+			, #{cucmPhoneId}
+			, R_CUCM_PHONE_LINE.CUCM_LINE_ID
+			, #{appUserId}
+			, #{statusCode}
+			, #{associateCode}
+			, #{telDirData}
+			, #{deleted}
+			, #{crtTmstmp}
+			, #{lstupdtTmstmp}
+		FROM
+			R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+		WHERE
+			R_CUCM_PHONE_LINE.CUCM_PHONE_ID = #{cucmPhoneId}
+		AND R_CUCM_PHONE_LINE.DELETED = #{constants.COM_FLG_OFF}
+		AND NOT EXISTS (
+			SELECT
+				1
+			FROM
+				TEL_DIR_ASSOCIATION TEL_DIR_ASSOCIATION
+			WHERE
+				TEL_DIR_ASSOCIATION.CUCM_PHONE_ID = R_CUCM_PHONE_LINE.CUCM_PHONE_ID
+			AND TEL_DIR_ASSOCIATION.CUCM_LINE_ID = R_CUCM_PHONE_LINE.CUCM_LINE_ID
+			AND TEL_DIR_ASSOCIATION.APP_USER_ID = #{appUserId}
+		)
+	</insert>
+
+	<!-- TEL_DIR_DATAの登録を行います -->
+	<insert id="insertTelDirDataTelUser" parameterType="TelDirAssociationEntity">
+		INSERT INTO TEL_DIR_ASSOCIATION(
+			TEL_DIR_ASSOCIATION_ID
+			, CUCM_PHONE_ID
+			, CUCM_LINE_ID
+			, APP_USER_ID
+			, STATUS_CODE
+			, ASSOCIATE_CODE
+			, TEL_DIR_DATA
+			, DELETED
+			, CREATION_DATETIME
+			, LASTUPDATE_DATETIME
+		) SELECT
+			NEXTVAL('TEL_DIR_ASSOCIATION_TEL_DIR_ASSOCIATION_ID_SEQ')
+			, #{cucmPhoneId}
+			, #{cucmLineId}
+			, R_CUCM_USER_PHONE.APP_USER_ID
+			, #{statusCode}
+			, #{associateCode}
+			, #{telDirData}
+			, #{deleted}
+			, #{crtTmstmp}
+			, #{lstupdtTmstmp}
+		FROM
+			R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+		WHERE
+			R_CUCM_USER_PHONE.CUCM_PHONE_ID = #{cucmPhoneId}
+		AND R_CUCM_USER_PHONE.DELETED       = #{constants.COM_FLG_OFF}
+		AND NOT EXISTS (
+			SELECT
+				1
+			FROM
+				TEL_DIR_ASSOCIATION TEL_DIR_ASSOCIATION
+			WHERE
+				TEL_DIR_ASSOCIATION.CUCM_PHONE_ID = R_CUCM_USER_PHONE.CUCM_PHONE_ID
+			AND TEL_DIR_ASSOCIATION.CUCM_LINE_ID  = #{cucmLineId}
+			AND TEL_DIR_ASSOCIATION.APP_USER_ID   = R_CUCM_USER_PHONE.APP_USER_ID
+		)
+	</insert>
+	
+	<!-- 電話機に該当する全ての情報を登録します -->
+	<insert id="insertTelDirDataTelAll" parameterType="TelDirAssociationEntity">
+		INSERT INTO TEL_DIR_ASSOCIATION(
+			TEL_DIR_ASSOCIATION_ID
+			, CUCM_PHONE_ID
+			, CUCM_LINE_ID
+			, APP_USER_ID
+			, STATUS_CODE
+			, ASSOCIATE_CODE
+			, TEL_DIR_DATA
+			, DELETED
+			, CREATION_DATETIME
+			, LASTUPDATE_DATETIME
+		) 
+		SELECT
+			NEXTVAL('TEL_DIR_ASSOCIATION_TEL_DIR_ASSOCIATION_ID_SEQ')
+			, #{cucmPhoneId}
+			, R_CUCM_PHONE_LINE.CUCM_LINE_ID
+			, R_CUCM_USER_PHONE.APP_USER_ID
+			, #{statusCode}
+			, #{associateCode}
+			, #{telDirData}
+			, #{deleted}
+			, #{crtTmstmp}
+			, #{lstupdtTmstmp}
+		FROM
+			R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE INNER JOIN R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+				ON R_CUCM_PHONE_LINE.CUCM_PHONE_ID = R_CUCM_USER_PHONE.CUCM_PHONE_ID
+		WHERE
+			R_CUCM_PHONE_LINE.CUCM_PHONE_ID = #{cucmPhoneId}
+		AND R_CUCM_PHONE_LINE.DELETED       = #{constants.COM_FLG_OFF}
+		AND R_CUCM_USER_PHONE.DELETED       = #{constants.COM_FLG_OFF}
+	</insert>
+
+	<!-- TEL_DIR_DATAの更新を行います -->
+	<update id="updateTelDirData" parameterType="TelDirAssociationEntity">
+		UPDATE TEL_DIR_ASSOCIATION
+		SET
+			TEL_DIR_DATA = #{telDirData}
+			, LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+			TEL_DIR_ASSOCIATION.CUCM_PHONE_ID = #{cucmPhoneId}
+		AND TEL_DIR_ASSOCIATION.CUCM_LINE_ID  = #{cucmLineId}
+		AND TEL_DIR_ASSOCIATION.APP_USER_ID   = #{appUserId}
+	</update>
+
+	<!-- TEL_DIR_DATAの削除フラグ更新を行います -->
+	<update id="updateTelDirDataDelete" parameterType="TelDirAssociationEntity">
+		UPDATE TEL_DIR_ASSOCIATION
+		SET
+			DELETED = #{deleted}
+			, LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		<where>
+			<if test="cucmPhoneId != null and cucmPhoneId != ''">
+				TEL_DIR_ASSOCIATION.CUCM_PHONE_ID = #{cucmPhoneId}
+			</if>
+			<if test="cucmLineId != null and cucmLineId != ''">
+				AND TEL_DIR_ASSOCIATION.CUCM_LINE_ID  = #{cucmLineId}
+			</if>
+			<if test="appUserId != null and appUserId != ''">
+				AND TEL_DIR_ASSOCIATION.APP_USER_ID   = #{appUserId}
+			</if>
+		</where>
+	</update>
+
+	<!-- TEL_DIR_DATAの削除フラグ更新を行います -->
+	<update id="updateTelDirDataUserTelDelete" parameterType="TelDirAssociationEntity">
+		UPDATE TEL_DIR_ASSOCIATION
+		SET
+			DELETED = #{deleted}
+			, LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+			TEL_DIR_ASSOCIATION.CUCM_PHONE_ID = #{cucmPhoneId}
+		AND TEL_DIR_ASSOCIATION.APP_USER_ID   = #{appUserId}
+		AND TEL_DIR_ASSOCIATION.DELETED       = #{constants.COM_FLG_ON}
+		AND EXISTS (
+			SELECT
+				1
+			FROM
+				R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+			WHERE
+				R_CUCM_PHONE_LINE.CUCM_PHONE_ID = TEL_DIR_ASSOCIATION.CUCM_PHONE_ID
+			AND R_CUCM_PHONE_LINE.CUCM_LINE_ID  = TEL_DIR_ASSOCIATION.CUCM_LINE_ID
+			AND R_CUCM_PHONE_LINE.DELETED       = #{constants.COM_FLG_OFF}
+		)
+	</update>
+
+	<!-- TEL_DIR_DATAの削除フラグ更新を行います -->
+	<update id="updateTelDirDataTelLineDelete" parameterType="TelDirAssociationEntity">
+		UPDATE TEL_DIR_ASSOCIATION
+		SET
+			DELETED = #{deleted}
+			, LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+			TEL_DIR_ASSOCIATION.CUCM_PHONE_ID = #{cucmPhoneId}
+		AND TEL_DIR_ASSOCIATION.CUCM_LINE_ID  = #{cucmLineId}
+		AND TEL_DIR_ASSOCIATION.DELETED       = #{constants.COM_FLG_ON}
+		AND EXISTS (
+			SELECT
+				1
+			FROM
+				R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+			WHERE
+				R_CUCM_USER_PHONE.APP_USER_ID    = TEL_DIR_ASSOCIATION.APP_USER_ID
+			AND R_CUCM_USER_PHONE.CUCM_PHONE_ID  = TEL_DIR_ASSOCIATION.CUCM_PHONE_ID
+			AND R_CUCM_USER_PHONE.DELETED        = #{constants.COM_FLG_OFF}
+		)
+	</update>
+
+	<!-- TEL_DIR_DATAの削除フラグ更新を行います -->
+	<update id="updateTelDirDataReserveDelete" parameterType="TelDirAssociationEntity">
+		UPDATE TEL_DIR_ASSOCIATION SET
+			DELETED = #{deleted}
+			, LASTUPDATE_DATETIME = #{lstupdtTmstmp}
+		WHERE
+		EXISTS(
+			SELECT
+				1
+			FROM
+				R_USER_SECTION R_USER_SECTION INNER JOIN R_CUCM_USER_PHONE R_CUCM_USER_PHONE
+				ON R_USER_SECTION.APP_USER_ID = R_CUCM_USER_PHONE.APP_USER_ID
+			WHERE
+				R_USER_SECTION.APP_USER_ID = #{appUserId}
+			AND R_USER_SECTION.COMPANY_ID  = R_CUCM_USER_PHONE.COMPANY_ID
+			AND R_USER_SECTION.SECTION_ID  = R_CUCM_USER_PHONE.SECTION_ID
+			AND R_USER_SECTION.DELETE_RESERVE   = #{constants.COM_FLG_ON}
+			AND R_CUCM_USER_PHONE.DELETED       = #{constants.COM_FLG_OFF}
+			AND R_CUCM_USER_PHONE.APP_USER_ID   = TEL_DIR_ASSOCIATION.APP_USER_ID
+			AND R_CUCM_USER_PHONE.CUCM_PHONE_ID = TEL_DIR_ASSOCIATION.CUCM_PHONE_ID
+		)
+	</update>
+
+	<!-- ### DELETE ### -->
+	<!-- 電子電話帳票関連の削除を行います。 -->
+	<delete id="deleteTelDirData" parameterType="TelDirAssociationEntity">
+		DELETE
+			FROM TEL_DIR_ASSOCIATION
+		WHERE
+			TEL_DIR_ASSOCIATION.CUCM_PHONE_ID = #{cucmPhoneId}
+		AND TEL_DIR_ASSOCIATION.APP_USER_ID   = #{appUserId}
+		<if test="cucmLineId != null and cucmLineId != ''">
+			AND TEL_DIR_ASSOCIATION.CUCM_LINE_ID  = #{cucmLineId}
+		</if>
+	</delete>
+
+</mapper>
+
