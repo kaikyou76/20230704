@@ -1,0 +1,6 @@
+■ソースの区割りについて
+
+　【batch】  :人事情報取込等のバッチ処理用のjavaソース、プロパティ、Shell等
+　【clmngr】 :CUCM(CallManager)と連携する為のSOAP通信用のjavaソース、プロパティ等 
+　　　　　　　※【batch】、及び、【irdb】から参照されるライブラリ
+　【irdb】   :Webアプリ（画面）用のjavaソース、プロパティ等
