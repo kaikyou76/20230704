@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.co.netmarks.batch.persistence.LoadPersonnelMapper">
+
+<!-- 一覧のエクスポート用の値を取得（CSV） -->
+	<select id="getUserAndTelCsvList" parameterType="jp.co.ksc.batch.util.BaseConstants" resultType="Map">
+		SELECT
+			  CASE
+				WHEN COALESCE(statusCd, '1') = '1' THEN ''
+				ELSE 'BAT出力待'
+			  END AS status
+			, COALESCE(directoryNo, '') AS directoryNo
+			, COALESCE(dialin, '') AS dialin
+			, COALESCE(externalPhoneNoMask, '') AS externalPhoneNoMask
+			, COALESCE(no::text, '') AS no
+			, COALESCE(userNmKanji, '') AS userNmKanji
+			, COALESCE(userSectionNm, '') AS userSectionNm
+			, COALESCE(pickupGroupNm, '') AS pickupGroupNm
+			, COALESCE(busyDestination, '') AS busyDestination
+			, COALESCE(noansDestination, '') AS noansDestination
+			, COALESCE(chargeBranchCd, '') AS chargeBranchCd
+			, COALESCE(chargeParentSectionCd, '') AS chargeParentSectionCd
+			, COALESCE(chargeSectionCd, '') AS chargeSectionCd
+			, COALESCE(chargeRemarks, '') AS chargeRemarks
+			, COALESCE(voiceLoggerNm, '') AS voiceLoggerNm
+			, COALESCE(phoneClassNm, '') AS phoneClassNm
+			, COALESCE(deviceTypeNm, '') AS deviceTypeNm
+			, COALESCE(macAddress, '') AS macAddress
+			, COALESCE(phoneTemplateNm, '') AS phoneTemplateNm
+			, COALESCE(softkeyTemplateNm, '') AS softkeyTemplateNm
+			, COALESCE(phoneBranchNm, '') AS phoneBranchNm
+			, COALESCE(phoneSectionNm, '') AS phoneSectionNm
+			, COALESCE(callingSearchSpaceNm, '') AS callingSearchSpaceNm
+			, COALESCE(addonModuleNm1, '') AS addonModuleNm1
+			, COALESCE(addonModuleNm2, '') AS addonModuleNm2
+			, COALESCE(addonModuleNm3, '') AS addonModuleNm3
+			, COALESCE(ringSettingNm, '') AS ringSettingNm
+			, COALESCE(lineRemarks, '') AS lineRemarks
+			, COALESCE(lineTxtLabel, '') AS lineTxtLabel
+			, COALESCE(allDestination, '') AS allDestination
+			, COALESCE(phoneRemarks, '') AS phoneRemarks
+			, COALESCE(voiceMailProfileNm, '') AS voiceMailProfileNm
+			, COALESCE(fomaNo::text, '') AS fomaNo
+			, COALESCE(callingPartyTransformationMask, '') AS callingPartyTransformationMask
+			, COALESCE(representativePickupNm, '') AS representativePickupNm
+			, COALESCE(gwRepletionSpecialNo, '') AS gwRepletionSpecialNo
+		FROM
+			(
+				<include refid="selectSearchUserAndList"/>
+			) v_info
+	</select>
+
+	<!-- ユーザー一覧検索結果用 sql明文-->
+	<sql id="selectSearchUserAndList">
+		SELECT
+			  v_search_info.phoneId
+			, v_search_info.phoneClass
+			, v_search_info.phoneClassNm
+			, v_search_info.deviceTypeId
+			, v_search_info.deviceTypeNm
+			, v_search_info.maxAddonModuleNum
+			, v_search_info.macAddress
+			, v_search_info.callingSearchSpaceId
+			, v_search_info.callingSearchSpaceNm
+			, v_search_info.softkeyTemplateId
+			, v_search_info.softkeyTemplateNm
+			, v_search_info.phoneBranchId
+			, v_search_info.phoneBranchNm
+			, v_search_info.phoneSectionId
+			, v_search_info.phoneSectionNm
+			, v_search_info.phoneTemplateId
+			, v_search_info.phoneTemplateNm
+			, v_search_info.statusCd
+			, v_search_info.statusNm
+			, v_search_info.phoneRemarks
+			, v_search_info.addonModuleId1
+			, v_search_info.addonModuleNm1
+			, v_search_info.addonModuleId2
+			, v_search_info.addonModuleNm2
+			, v_search_info.addonModuleId3
+			, v_search_info.addonModuleNm3
+			, v_search_info.lineId
+			, v_search_info.no
+			, v_search_info.pickupGroupId
+			, v_search_info.pickupGroupNm
+			, v_search_info.voiceMailProfileId
+			, v_search_info.voiceMailProfileNm
+			, v_search_info.directoryNo
+			, v_search_info.allDestination
+			, v_search_info.busyDestination
+			, v_search_info.noansDestination
+			, v_search_info.voiceLogger
+			, v_search_info.voiceLoggerNm
+			, v_search_info.lineTxtLabel
+			, v_search_info.externalPhoneNoMask
+			, v_search_info.dialin
+			, v_search_info.ringSettingNm
+			, v_search_info.callingPartyTransformationMask
+			, v_search_info.gwRepletionSpecialNo
+			, v_search_info.lineRemarks
+			, v_search_info.representativePickup
+			, v_search_info.representativePickupNm
+			, v_search_info.chargeId
+			, v_search_info.chargeBranchCd
+			, v_search_info.chargeParentSectionCd
+			, v_search_info.chargeSectionCd
+			, v_search_info.chargeRemarks
+			, v_search_info.userId
+			, v_search_info.userNmKanji
+			, v_search_info.userSectionId
+			, v_search_info.userSectionNm
+			, v_search_info.enabledSharedUse
+			, v_search_info.fmcId
+			, v_search_info.fomaNo
+			, ROW_NUMBER() OVER (ORDER BY ( v_search_info.directoryNo,v_search_info.phoneBranchId,v_search_info.phoneSectionId,v_search_info.userSectionId,v_search_info.addonModuleId1,v_search_info.userNmKanji )) AS ROW_NUMBER
+			, CASE
+				WHEN
+					    COALESCE(v_phone_user.status, '9')     = '0' <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, '9')       = '0' <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, '9')       = '0' <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, '9')       = '0' <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, '0') = '0' <!-- 共用電話 0 -->
+				THEN '1'			<!-- 一般紐付け -->
+				WHEN
+					    COALESCE(v_phone_user.status, '9')     = '1' <!-- 電話     1－N ユーザー -->
+					AND COALESCE(v_user_tel.status, '9')       = '0' <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, '9')       = '0' <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, '9')       = '0' <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, '0') = '0' <!-- 共用電話 0 -->
+				THEN '2'		<!-- 共有ユーザー -->
+				WHEN
+					    COALESCE(v_phone_user.status, '9')     IN ('0','9') <!-- 電話     1－1or0 ユーザー -->
+					AND COALESCE(v_user_tel.status, '9')       IN ('0','9') <!-- ユーザー 1or0－1 電話 -->
+					AND COALESCE(v_line_tel.status, '9')       = '1'   <!-- ライン   1－N 電話 -->
+					AND COALESCE(v_tel_line.status, '9')       = '0' <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, '0') = '0' <!-- 共用電話 0 -->
+				THEN '3'		<!-- シェアードライン -->
+				WHEN
+					    COALESCE(v_phone_user.status, '9')     = '0' <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, '9')       = '1'   <!-- ユーザー 1－N 電話 -->
+					AND COALESCE(v_line_tel.status, '9')       = '0' <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, '9')       = '0' <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, '0') = '0' <!-- 共用電話 0 -->
+				THEN '4' 		<!-- マルチデバイス -->
+				WHEN
+					    COALESCE(v_phone_user.status, '9')     IN ('0','9') <!-- 電話     1－1or0 ユーザー -->
+					AND COALESCE(v_user_tel.status, '9')       IN ('0','9') <!-- ユーザー 1or0－1 電話 -->
+					AND COALESCE(v_line_tel.status, '9')       = '0'      <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, '9')       = '1'        <!-- 電話     1－N ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, '0') = '0'   <!-- 共用電話 0 -->
+				THEN '5'			<!-- マルチライン -->
+				WHEN
+					    COALESCE(v_phone_user.status, '9')     = '0' <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, '9')       = '0' <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, '9')       = '0' <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, '9')       = '0' <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, '0') = '1' <!-- 共用電話 1 -->
+				THEN '6'			<!-- 共用電話機 -->
+				WHEN
+					    COALESCE(v_phone_user.status, '9')     = '9' <!-- 電話     1－0 ユーザー -->
+					AND COALESCE(v_user_tel.status, '9')       = '9' <!-- ユーザー 0－1 電話 -->
+					AND COALESCE(v_line_tel.status, '9')       = '0' <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, '9')       = '0' <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, '0') = '0' <!-- 共用電話 0 -->
+				THEN '8'		<!-- 部内在庫電話機 -->
+				WHEN
+					    COALESCE(v_phone_user.status, '9')     = '9' <!-- 電話     1－0 ユーザー -->
+					AND COALESCE(v_user_tel.status, '9')       = '9' <!-- ユーザー 0－1 電話 -->
+					AND COALESCE(v_line_tel.status, '9')       = '9' <!-- ライン   0－1 電話 -->
+					AND COALESCE(v_tel_line.status, '9')       = '9' <!-- 電話     1－0 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, '0') = '0' <!-- 共用電話 0 -->
+					AND v_search_info.phoneId IS NOT NULL
+				THEN '8'		<!-- 電話機単体 -->
+				WHEN
+					COALESCE(v_tel_line.status, '9')       = '9' <!-- 電話     0－0 ライン -->
+				THEN '7'		<!-- 電話機と紐付いていないユーザ -->
+				ELSE '9'				<!-- 複数存在した場合 -->
+			END AS telUsagesStatus <!-- ユーザー×電話×ラインのパターンステータス -->
+		FROM
+			(
+				<include refid="selectUserAndTelList"/>
+			) v_search_info
+			LEFT OUTER JOIN (
+				SELECT
+					phone_id,
+					CASE
+						WHEN count(phone_id) <![CDATA[<=]]> 1 THEN '0'
+						ELSE '1'
+					END AS status
+				FROM
+					rel_cucm_user_phone	<!-- ユーザー－電話 -->
+				WHERE
+					delete_flg = '0'
+				GROUP BY
+					phone_id
+				) v_phone_user
+				ON v_search_info.phoneId = v_phone_user.phone_id
+			LEFT OUTER JOIN (
+				SELECT
+					line_id,
+					CASE
+						WHEN count(line_id) <![CDATA[<=]]> 1 THEN '0'
+						ELSE '1'
+					END AS status
+				FROM
+					rel_cucm_phone_line	<!-- ライン－電話 -->
+				WHERE
+					delete_flg = '0'
+				GROUP BY
+					line_id
+				) v_line_tel
+				ON v_search_info.lineId = v_line_tel.line_id
+			LEFT OUTER JOIN (
+				SELECT
+					user_id,
+				CASE
+					WHEN count(user_id) <![CDATA[<=]]> 1 THEN '0'
+					ELSE '1'
+				END AS status
+				FROM
+					rel_cucm_user_phone	<!-- 電話－ユーザー -->
+				WHERE
+					delete_flg = '0'
+				GROUP BY
+					user_id
+				) v_user_tel
+				ON v_search_info.userId = v_user_tel.user_id
+			LEFT OUTER JOIN (
+				SELECT
+					phone_id,
+					CASE
+						WHEN count(phone_id) <![CDATA[<=]]> 1 THEN '0'
+						ELSE '1'
+					END AS status
+				FROM
+					rel_cucm_phone_line	<!-- 電話－ライン -->
+				WHERE
+					delete_flg = '0'
+				GROUP BY
+					phone_id
+				) v_tel_line
+				ON v_search_info.phoneId = v_tel_line.phone_id
+	</sql>
+
+<!-- ユーザーと電話機一覧 sql明文-->
+	<sql id="selectUserAndTelList">
+		SELECT
+			  phone_id AS phoneId
+			, phone_class AS phoneClass
+			, phone_class_nm AS phoneClassNm
+			, device_type_id AS deviceTypeId
+			, device_type_nm AS deviceTypeNm
+			, max_addon_module_num AS maxAddonModuleNum
+			, mac_address AS macAddress
+			, calling_search_space_id AS callingSearchSpaceId
+			, calling_search_space_nm AS callingSearchSpaceNm
+			, softkey_template_id AS softkeyTemplateId
+			, softkey_template_nm AS softkeyTemplateNm
+			, phone_branch_id AS phoneBranchId
+			, phone_branch_nm AS phoneBranchNm
+			, phone_section_id AS phoneSectionId
+			, phone_section_nm AS phoneSectionNm
+			, phone_template_id AS phoneTemplateId
+			, phone_template_nm AS phoneTemplateNm
+			, status_code AS statusCd
+			, status AS statusNm
+			, phone_remarks AS phoneRemarks
+			, addon_module_id_1 AS addonModuleId1
+			, addon_module_nm_1 AS addonModuleNm1
+			, addon_module_id_2 AS addonModuleId2
+			, addon_module_nm_2 AS addonModuleNm2
+			, addon_module_id_3 AS addonModuleId3
+			, addon_module_nm_3 AS addonModuleNm3
+			, line_id AS lineId
+			, no AS no
+			, pickup_group_id AS pickupGroupId
+			, pickup_group_nm AS pickupGroupNm
+			, voice_mail_profile_id AS voiceMailProfileId
+			, voice_mail_profile_nm AS voiceMailProfileNm
+			, directory_no AS directoryNo
+			, fwd_all_destination AS allDestination
+			, fwd_busy_destination AS busyDestination
+			, fwd_noans_destination AS noansDestination
+			, voice_logger AS voiceLogger
+			, voice_logger_nm AS voiceLoggerNm
+			, line_txt_label AS lineTxtLabel
+			, external_phone_no_mask AS externalPhoneNoMask
+			, dialin AS dialin
+			, ring_setting_nm AS ringSettingNm
+			, calling_party_transformation_mask AS callingPartyTransformationMask
+			, gw_repletion_special_no AS gwRepletionSpecialNo
+			, line_remarks AS lineRemarks
+			, representative_pickup AS representativePickup
+			, representative_pickup_nm AS representativePickupNm
+			, charge_id AS chargeId
+			, charge_branch_cd AS chargeBranchCd
+			, charge_parent_section_cd AS chargeParentSectionCd
+			, charge_section_cd AS chargeSectionCd
+			, charge_remarks AS chargeRemarks
+			, user_id AS userId
+			, user_nm_kanji AS userNmKanji
+			, user_section_id AS userSectionId
+			, user_section_nm AS userSectionNm
+			, enabled_shared_use AS enabledSharedUse
+			, fmc_id AS fmcId
+			, foma_no AS fomaNo
+		FROM (
+			SELECT
+				  phone.phone_id
+				, CASE
+					WHEN device.device_type_nm != 'CTI port' AND line.fmc_id IS NOT NULL
+					THEN '3'
+					WHEN device.device_type_nm = 'CTI port'
+					THEN '2'
+					ELSE '1'
+				  END AS phone_class
+				, CASE
+					WHEN device.device_type_nm != 'CTI port' AND line.fmc_id IS NOT NULL
+					THEN '固定併用'
+					WHEN device.device_type_nm = 'CTI port'
+					THEN 'FMC端末'
+					ELSE 'IP電話'
+				  END AS phone_class_nm
+				, phone.device_type_id
+				, device.device_type_nm
+				, device.max_addon_module_num
+				, substring(phone.device_nm, 3,length(phone.device_nm)) AS mac_address
+				, phone.calling_search_space_id
+				, css.calling_search_space_nm
+				, phone.softkey_template_id
+				, softkey.softkey_template_nm
+				, phone.branch_id AS phone_branch_id
+				, branch.branch_nm AS phone_branch_nm
+				, phone.section_id AS phone_section_id
+				, section.section_nm AS phone_section_nm
+				, phone.phone_template_id
+				, template.phone_template_nm
+				, CASE
+					WHEN phone.update_status = '0'
+					THEN '3'
+					ELSE '2'
+				  END AS status_code
+				, CASE
+				 	WHEN phone.update_status = '0'
+				 	THEN '反映済'
+					ELSE '反映待'
+				  END AS status
+				, phone.remarks AS phone_remarks
+				, phone.addon_module_id_1
+				, module1.device_type_nm AS addon_module_nm_1
+				, phone.addon_module_id_2
+				, module2.device_type_nm AS addon_module_nm_2
+				, phone.addon_module_id_3
+				, module3.device_type_nm AS addon_module_nm_3
+				, line.line_id
+				, line.no
+				, line.pickup_group_id
+				, line.pickup_group_nm
+				, line.voice_mail_profile_id
+				, line.voice_mail_profile_nm
+				, line.directory_no
+				, line.fwd_all_destination
+				, line.fwd_busy_destination
+				, line.fwd_noans_destination
+				, line.voice_logger
+				, CASE
+				 	WHEN line.voice_logger = '1'
+				 	THEN '全録'
+					ELSE 'なし'
+				  END AS voice_logger_nm
+				, line.line_txt_label
+				, line.external_phone_no_mask
+				, line.dialin
+				, line.ring_setting_nm
+				, line.calling_party_transformation_mask
+				, line.gw_repletion_special_no
+				, line.line_remarks
+				, line.representative_pickup
+				, CASE
+				 	WHEN line.representative_pickup = 1
+				 	THEN '設定あり'
+					ELSE '設定なし'
+				  END AS representative_pickup_nm
+				, line.charge_id
+				, line.charge_branch_cd
+				, line.charge_parent_section_cd
+				, line.charge_section_cd
+				, line.charge_remarks
+				, tuser.user_id
+				, tuser.user_nm_kanji
+				, tuser.user_section_id
+				, tuser.user_section_nm
+				, tuser.enabled_shared_use
+				, officelink.fmc_id
+				, officelink.foma_no
+			FROM
+				trn_phone phone
+			LEFT JOIN (
+				SELECT
+					  pl.phone_id
+					, trn_line.line_id
+					, trn_line.fmc_id
+					, pl.no
+					, trn_line.pickup_group_id
+					, pickup.pickup_group_nm
+					, trn_line.voice_mail_profile_id
+					, vmprofile.voice_mail_profile_nm
+					, trn_line.directory_no
+					, trn_line.fwd_all_destination
+					, trn_line.fwd_busy_destination
+					, trn_line.fwd_noans_destination
+					, trn_line.voice_logger
+					, pl.line_txt_label
+					, pl.external_phone_no_mask
+					, pl.dialin
+					, pl.ring_setting_nm
+					, trn_line.calling_party_transformation_mask
+					, trn_line.gw_repletion_special_no
+					, pl.remarks AS line_remarks
+					, trn_line.representative_pickup
+					, trn_line.charge_id AS charge_id
+					, level.branch_cd AS charge_branch_cd
+					, level.parent_section_cd AS charge_parent_section_cd
+					, level.child_section_cd AS charge_section_cd
+					, charge.remarks AS charge_remarks
+				FROM
+					trn_line
+				INNER JOIN rel_cucm_phone_line pl
+					ON trn_line.line_id = pl.line_id
+				INNER JOIN trn_charge_association charge
+					ON trn_line.charge_id = charge.charge_id
+				INNER JOIN vew_organization_level level
+					ON charge.branch_id = level.branch_id
+					AND charge.section_id = level.child_section_id
+				LEFT JOIN mst_cucm_pickup_group pickup
+					ON trn_line.pickup_group_id = pickup.pickup_group_id
+				LEFT JOIN mst_cucm_voice_mail_profile vmprofile
+					ON trn_line.voice_mail_profile_id = vmprofile.voice_mail_profile_id
+				WHERE
+					pl.delete_flg = '0'
+			) line
+				ON phone.phone_id = line.phone_id
+			LEFT OUTER JOIN (
+				SELECT
+					  trn_phone.phone_id
+					, trn_user.user_id
+					, trn_user.user_nm_kanji
+					, mst_section.section_id AS user_section_id
+					, mst_section.section_nm AS user_section_nm
+					, trn_user.enabled_shared_use
+				FROM
+				 	trn_user
+				INNER JOIN rel_cucm_user_phone up
+					ON trn_user.user_id = up.user_id
+				INNER JOIN trn_phone
+					ON up.phone_id = trn_phone.phone_id
+				INNER JOIN rel_user_section us
+					ON trn_user.user_id = us.user_id
+				INNER JOIN mst_section
+					 ON us.section_id = mst_section.section_id
+				 	AND up.delete_flg = '0'
+				 WHERE
+				 	trn_phone.delete_flg = '0'
+			) tuser
+				ON phone.phone_id = tuser.phone_id
+			INNER JOIN mst_cucm_device_type device
+				ON device.device_type_id = phone.device_type_id
+			LEFT JOIN mst_cucm_phone_template template
+				ON phone.phone_template_id = template.phone_template_id
+			LEFT JOIN mst_cucm_calling_search_space css
+				ON phone.calling_search_space_id = css.calling_search_space_id
+			LEFT JOIN mst_branch branch
+				ON phone.branch_id = branch.branch_id
+			LEFT JOIN mst_section section
+				ON phone.section_id = section.section_id
+			LEFT JOIN mst_cucm_device_type module1
+				ON phone.addon_module_id_1 = module1.device_type_id
+			LEFT JOIN mst_cucm_device_type module2
+				ON phone.addon_module_id_2 = module2.device_type_id
+			LEFT JOIN mst_cucm_device_type module3
+				ON phone.addon_module_id_3 = module3.device_type_id
+			INNER JOIN mst_cucm_softkey_template softkey
+				ON phone.softkey_template_id = softkey.softkey_template_id
+			LEFT JOIN trn_officelink_fmc officelink
+				 ON line.fmc_id = officelink.fmc_id
+			  	AND officelink.delete_flg = '0'
+			WHERE
+			  	phone.delete_flg = '0'
+
+			UNION ALL
+
+			SELECT
+				  NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, '1' AS status_code
+				, '反映済' AS status
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, user_id
+				, user_nm_kanji
+				, section_id
+				, section_nm
+				, enabled_shared_use
+				, NULL
+				, NULL
+			FROM (
+				SELECT
+					  trn_user.user_id
+					, trn_user.user_nm_kanji
+					, mst_section.section_id
+					, mst_section.section_nm
+					, trn_user.enabled_shared_use
+				FROM
+					trn_user
+				INNER JOIN rel_user_section us
+					ON trn_user.user_id = us.user_id
+				INNER JOIN mst_section
+					ON us.section_id = mst_section.section_id
+
+				EXCEPT
+
+				SELECT
+					  trn_user.user_id
+					, trn_user.user_nm_kanji
+					, mst_section.section_id
+					, mst_section.section_nm
+					, trn_user.enabled_shared_use
+				FROM
+					trn_user
+				INNER JOIN rel_cucm_user_phone up
+					ON trn_user.user_id = up.user_id
+				INNER JOIN trn_phone
+					 ON up.phone_id = trn_phone.phone_id
+				 	AND up.delete_flg = '0'
+				INNER JOIN rel_user_section us
+					ON trn_user.user_id = us.user_id
+				INNER JOIN mst_section
+					ON us.section_id = mst_section.section_id
+				WHERE
+				 	trn_phone.delete_flg = '0'
+			) v_user_donthave_phone
+		) v_tel_user_info
+</sql>
+</mapper>

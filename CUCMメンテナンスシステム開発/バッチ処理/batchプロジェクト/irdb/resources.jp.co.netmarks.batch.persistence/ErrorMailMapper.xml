@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.co.netmarks.batch.persistence.ErrorMailMapper">
+
+    <select id="selectMailAll" resultType="String">
+        SELECT DISTINCT BIZ_EMPLOYEE.MAIL_ADDRESS
+        FROM APP_USER
+        INNER JOIN R_USER_ROLE ON (APP_USER.APP_USER_ID = R_USER_ROLE.APP_USER_ID)
+        INNER JOIN BIZ_EMPLOYEE ON (APP_USER.BIZ_EMPLOYEE_ID = BIZ_EMPLOYEE.EMPLOYEE_CODE)
+        WHERE R_USER_ROLE.ROLE_CLASS = '0'
+        AND BIZ_EMPLOYEE.MAIL_ADDRESS IS NOT NULL
+        AND BIZ_EMPLOYEE.MAIL_ADDRESS != ''
+    </select>
+
+    <select id="selectHimself" parameterType="Map" resultType="Map">
+        SELECT DISTINCT BIZ_EMPLOYEE.MAIL_ADDRESS
+        FROM APP_USER
+        INNER JOIN R_USER_ROLE ON (APP_USER.APP_USER_ID = R_USER_ROLE.APP_USER_ID)
+        INNER JOIN BIZ_EMPLOYEE ON (APP_USER.BIZ_EMPLOYEE_ID = BIZ_EMPLOYEE.EMPLOYEE_CODE)
+        WHERE BIZ_EMPLOYEE.MAIL_ADDRESS IS NOT NULL
+        AND BIZ_EMPLOYEE.MAIL_ADDRESS != ''
+        AND APP_USER.APP_USER_ID = #{appUserId}
+        LIMIT 1
+    </select>
+
+    <select id="selectisHimself" parameterType="Map" resultType="Map">
+        SELECT DISTINCT ROLE_CLASS
+        FROM R_USER_ROLE
+        INNER JOIN APP_USER ON (APP_USER.APP_USER_ID = R_USER_ROLE.APP_USER_ID)
+        WHERE APP_USER.APP_USER_ID = #{appUserId}
+        LIMIT 1
+    </select>
+
+</mapper>
