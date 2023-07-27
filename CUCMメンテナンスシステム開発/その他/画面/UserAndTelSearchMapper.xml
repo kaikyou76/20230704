@@ -1,0 +1,1071 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="jp.co.netmarks.persistence.UserAndTelSearchMapper">
+
+	<!-- ユーザーと電話機一覧 -->
+	<sql id="selectUserAndTelList">
+		SELECT
+			  phone_id AS phoneId
+			, phone_class AS phoneClass
+			, phone_class_nm AS phoneClassNm
+			, device_type_id AS deviceTypeId
+			, device_type_nm AS deviceTypeNm
+			, max_addon_module_num AS maxAddonModuleNum
+			, mac_address AS macAddress
+			, calling_search_space_id AS callingSearchSpaceId
+			, calling_search_space_nm AS callingSearchSpaceNm
+			, softkey_template_id AS softkeyTemplateId
+			, softkey_template_nm AS softkeyTemplateNm
+			, phone_branch_id AS phoneBranchId
+			, phone_branch_nm AS phoneBranchNm
+			, phone_section_id AS phoneSectionId
+			, phone_section_nm AS phoneSectionNm
+			, phone_template_id AS phoneTemplateId
+			, phone_template_nm AS phoneTemplateNm
+			, status_code AS statusCd
+			, status AS statusNm
+			, phone_remarks AS phoneRemarks
+			, addon_module_id_1 AS addonModuleId1
+			, addon_module_nm_1 AS addonModuleNm1
+			, addon_module_id_2 AS addonModuleId2
+			, addon_module_nm_2 AS addonModuleNm2
+			, addon_module_id_3 AS addonModuleId3
+			, addon_module_nm_3 AS addonModuleNm3
+			, line_id AS lineId
+			, no AS no
+			, pickup_group_id AS pickupGroupId
+			, pickup_group_nm AS pickupGroupNm
+			, voice_mail_profile_id AS voiceMailProfileId
+			, voice_mail_profile_nm AS voiceMailProfileNm
+			, directory_no AS directoryNo
+			, fwd_all_destination AS allDestination
+			, fwd_busy_destination AS busyDestination
+			, fwd_noans_destination AS noansDestination
+			, voice_logger AS voiceLogger
+			, voice_logger_nm AS voiceLoggerNm
+			, line_txt_label AS lineTxtLabel
+			, external_phone_no_mask AS externalPhoneNoMask
+			, dialin AS dialin
+			, ring_setting_nm AS ringSettingNm
+			, calling_party_transformation_mask AS callingPartyTransformationMask
+			, gw_repletion_special_no AS gwRepletionSpecialNo
+			, line_remarks AS lineRemarks
+			, representative_pickup AS representativePickup
+			, representative_pickup_nm AS representativePickupNm
+			, charge_id AS chargeId
+			, charge_branch_cd AS chargeBranchCd
+			, charge_parent_section_cd AS chargeParentSectionCd
+			, charge_section_cd AS chargeSectionCd
+			, charge_remarks AS chargeRemarks
+			, user_id AS userId
+			, user_nm_kanji AS userNmKanji
+			, user_section_id AS userSectionId
+			, user_section_nm AS userSectionNm
+			, enabled_shared_use AS enabledSharedUse
+			, fmc_id AS fmcId
+			, foma_no AS fomaNo
+		FROM (
+			SELECT
+				  phone.phone_id
+				, CASE
+					WHEN device.device_type_nm != #{constants.TEL_TYPE_MODEL_CTI_PORT} AND line.fmc_id IS NOT NULL
+					THEN #{constants.PHONE_TYPE_COMBINED_USE}
+					WHEN device.device_type_nm = #{constants.TEL_TYPE_MODEL_CTI_PORT}
+					THEN #{constants.PHONE_TYPE_FMC}
+					ELSE #{constants.PHONE_TYPE_IP}
+				  END AS phone_class
+				, CASE
+					WHEN device.device_type_nm != #{constants.TEL_TYPE_MODEL_CTI_PORT} AND line.fmc_id IS NOT NULL
+					THEN #{constants.PHONE_TYPE_COMBINED_USE_NAME}
+					WHEN device.device_type_nm = #{constants.TEL_TYPE_MODEL_CTI_PORT}
+					THEN #{constants.PHONE_TYPE_FMC_NAME}
+					ELSE #{constants.PHONE_TYPE_IP_NAME}
+				  END AS phone_class_nm
+				, phone.device_type_id
+				, device.device_type_nm
+				, device.max_addon_module_num
+				, substring(phone.device_nm, 3,length(phone.device_nm)) AS mac_address
+				, phone.calling_search_space_id
+				, css.calling_search_space_nm
+				, phone.softkey_template_id
+				, softkey.softkey_template_nm
+				, phone.branch_id AS phone_branch_id
+				, branch.branch_nm AS phone_branch_nm
+				, phone.section_id AS phone_section_id
+				, section.section_nm AS phone_section_nm
+				, phone.phone_template_id
+				, template.phone_template_nm
+				, CASE
+					WHEN phone.update_status = #{constants.CUCM_UPDATE_FLG_FINISHED}
+					THEN #{constants.REFLECTION_FINISHED}
+					ELSE #{constants.REFLECTION_WAIT}
+				  END AS status_code
+				, CASE
+				 	WHEN phone.update_status = #{constants.CUCM_UPDATE_FLG_FINISHED}
+				 	THEN #{constants.REFLECTION_FINISHED_NAME}
+					ELSE #{constants.REFLECTION_WAIT_NAME}
+				  END AS status
+				, phone.remarks AS phone_remarks
+				, phone.addon_module_id_1
+				, module1.device_type_nm AS addon_module_nm_1
+				, phone.addon_module_id_2
+				, module2.device_type_nm AS addon_module_nm_2
+				, phone.addon_module_id_3
+				, module3.device_type_nm AS addon_module_nm_3
+				, line.line_id
+				, line.no
+				, line.pickup_group_id
+				, line.pickup_group_nm
+				, line.voice_mail_profile_id
+				, line.voice_mail_profile_nm
+				, line.directory_no
+				, line.fwd_all_destination
+				, line.fwd_busy_destination
+				, line.fwd_noans_destination
+				, line.voice_logger
+				, CASE
+				 	WHEN line.voice_logger = #{constants.LOGGER_DATA_ON}
+				 	THEN #{constants.LOGGER_DATA_ON_NAME}
+					ELSE #{constants.LOGGER_DATA_OFF_NAME}
+				  END AS voice_logger_nm
+				, line.line_txt_label
+				, line.external_phone_no_mask
+				, line.dialin
+				, line.ring_setting_nm
+				, line.calling_party_transformation_mask
+				, line.gw_repletion_special_no
+				, line.line_remarks
+				, line.representative_pickup
+				, CASE
+				 	WHEN line.representative_pickup = #{constants.PICKUP_ON}
+				 	THEN #{constants.PICKUP_ON_NAME}
+					ELSE #{constants.PICKUP_OFF_NAME}
+				  END AS representative_pickup_nm
+				, line.charge_id
+				, line.charge_branch_cd
+				, line.charge_parent_section_cd
+				, line.charge_section_cd
+				, line.charge_remarks
+				, tuser.user_id
+				, tuser.user_nm_kanji
+				, tuser.user_section_id
+				, tuser.user_section_nm
+				, tuser.enabled_shared_use
+				, officelink.fmc_id
+				, officelink.foma_no
+			FROM
+				trn_phone phone
+			LEFT JOIN (
+				SELECT
+					  pl.phone_id
+					, trn_line.line_id
+					, trn_line.fmc_id
+					, pl.no
+					, trn_line.pickup_group_id
+					, pickup.pickup_group_nm
+					, trn_line.voice_mail_profile_id
+					, vmprofile.voice_mail_profile_nm
+					, trn_line.directory_no
+					, trn_line.fwd_all_destination
+					, trn_line.fwd_busy_destination
+					, trn_line.fwd_noans_destination
+					, trn_line.voice_logger
+					, pl.line_txt_label
+					, pl.external_phone_no_mask
+					, pl.dialin
+					, pl.ring_setting_nm
+					, trn_line.calling_party_transformation_mask
+					, trn_line.gw_repletion_special_no
+					, pl.remarks AS line_remarks
+					, trn_line.representative_pickup
+					, trn_line.charge_id AS charge_id
+					, level.branch_cd AS charge_branch_cd
+					, level.parent_section_cd AS charge_parent_section_cd
+					, level.child_section_cd AS charge_section_cd
+					, charge.remarks AS charge_remarks
+				FROM
+					trn_line
+				INNER JOIN rel_cucm_phone_line pl
+					ON trn_line.line_id = pl.line_id
+				INNER JOIN trn_charge_association charge
+					ON trn_line.charge_id = charge.charge_id
+				INNER JOIN vew_organization_level level
+					ON charge.branch_id = level.branch_id
+					AND charge.section_id = level.child_section_id
+				LEFT JOIN mst_cucm_pickup_group pickup
+					ON trn_line.pickup_group_id = pickup.pickup_group_id
+				LEFT JOIN mst_cucm_voice_mail_profile vmprofile
+					ON trn_line.voice_mail_profile_id = vmprofile.voice_mail_profile_id
+				WHERE
+					pl.delete_flg = #{constants.COM_FLG_OFF}
+			) line
+				ON phone.phone_id = line.phone_id
+			LEFT OUTER JOIN (
+				SELECT
+					  trn_phone.phone_id
+					, trn_user.user_id
+					, trn_user.user_nm_kanji
+					, mst_section.section_id AS user_section_id
+					, mst_section.section_nm AS user_section_nm
+					, trn_user.enabled_shared_use
+				FROM
+				 	trn_user
+				INNER JOIN rel_cucm_user_phone up
+					ON trn_user.user_id = up.user_id
+				INNER JOIN trn_phone
+					ON up.phone_id = trn_phone.phone_id
+				INNER JOIN rel_user_section us
+					ON trn_user.user_id = us.user_id
+				INNER JOIN mst_section
+					 ON us.section_id = mst_section.section_id
+				 	AND up.delete_flg = #{constants.COM_FLG_OFF}
+				 WHERE
+				 	trn_phone.delete_flg = #{constants.COM_FLG_OFF}
+			) tuser
+				ON phone.phone_id = tuser.phone_id
+			INNER JOIN mst_cucm_device_type device
+				ON device.device_type_id = phone.device_type_id
+			LEFT JOIN mst_cucm_phone_template template
+				ON phone.phone_template_id = template.phone_template_id
+			LEFT JOIN mst_cucm_calling_search_space css
+				ON phone.calling_search_space_id = css.calling_search_space_id
+			LEFT JOIN mst_branch branch
+				ON phone.branch_id = branch.branch_id
+			LEFT JOIN mst_section section
+				ON phone.section_id = section.section_id
+			LEFT JOIN mst_cucm_device_type module1
+				ON phone.addon_module_id_1 = module1.device_type_id
+			LEFT JOIN mst_cucm_device_type module2
+				ON phone.addon_module_id_2 = module2.device_type_id
+			LEFT JOIN mst_cucm_device_type module3
+				ON phone.addon_module_id_3 = module3.device_type_id
+			INNER JOIN mst_cucm_softkey_template softkey
+				ON phone.softkey_template_id = softkey.softkey_template_id
+			LEFT JOIN trn_officelink_fmc officelink
+				 ON line.fmc_id = officelink.fmc_id
+			  	AND officelink.delete_flg = #{constants.COM_FLG_OFF}
+			WHERE
+			  	phone.delete_flg = #{constants.COM_FLG_OFF}
+
+			UNION ALL
+
+			SELECT
+				  NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, '1' AS status_code
+				, '反映済' AS status
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, NULL
+				, user_id
+				, user_nm_kanji
+				, section_id
+				, section_nm
+				, enabled_shared_use
+				, NULL
+				, NULL
+			FROM (
+				SELECT
+					  trn_user.user_id
+					, trn_user.user_nm_kanji
+					, mst_section.section_id
+					, mst_section.section_nm
+					, trn_user.enabled_shared_use
+				FROM
+					trn_user
+				INNER JOIN rel_user_section us
+					ON trn_user.user_id = us.user_id
+				INNER JOIN mst_section
+					ON us.section_id = mst_section.section_id
+
+				EXCEPT
+
+				SELECT
+					  trn_user.user_id
+					, trn_user.user_nm_kanji
+					, mst_section.section_id
+					, mst_section.section_nm
+					, trn_user.enabled_shared_use
+				FROM
+					trn_user
+				INNER JOIN rel_cucm_user_phone up
+					ON trn_user.user_id = up.user_id
+				INNER JOIN trn_phone
+					 ON up.phone_id = trn_phone.phone_id
+				 	AND up.delete_flg = #{constants.COM_FLG_OFF}
+				INNER JOIN rel_user_section us
+					ON trn_user.user_id = us.user_id
+				INNER JOIN mst_section
+					ON us.section_id = mst_section.section_id
+				WHERE
+				 	trn_phone.delete_flg = #{constants.COM_FLG_OFF}
+			) v_user_donthave_phone
+		) v_tel_user_info
+		<!-- <where>
+			<if test=" userBranchId != null and userBranchId != '' ">
+				<choose>
+					<when test=" userSectionId != null and userSectionId != '' ">
+							v_tel_user_info.userSectionId = #{userSectionId}
+					</when>
+					<otherwise>
+						EXISTS(
+							SELECT
+								1
+							FROM
+								vew_organization_level
+							WHERE
+								branch_id = #{userBranchId}
+							AND child_section_id = v_tel_user_info.userSectionId
+						)
+					</otherwise>
+				</choose>
+			</if>
+			<if test=" userSectionNm != null and userSectionNm != '' ">
+				AND v_tel_user_info.userSectionNm LIKE #{userSectionNm}
+			</if>
+			<if test=" phoneBranchId != null and phoneBranchId != '' ">
+				AND v_tel_user_info.phoneBranchId = #{phoneBranchId}
+			</if>
+			<if test=" phoneSectionId != null and phoneSectionId != '' ">
+				AND v_tel_user_info.phoneSectionId = #{phoneSectionId}
+			</if>
+			<if test=" macAddress != null and macAddress != '' ">
+				AND v_tel_user_info.macAddress LIKE #{macAddress}
+			</if>
+			<if test=" statusCd != null and statusCd != '' ">
+				AND v_tel_user_info.statusCd = #{statusCd}
+			</if>
+			<if test=" userNmKana != null and userNmKana != '' ">
+				AND TRANSLATE(v_tel_user_info.userNmKana, ' ', '') LIKE LIKE #{userNmKana}
+			</if>
+			<if test=" directoryNo != null and directoryNo != '' ">
+				AND v_tel_user_info.directoryNo LIKE #{directoryNo}
+			</if>
+			<if test=" dialin != null and dialin != '' ">
+				AND v_tel_user_info.dialin LIKE #{dialin}
+			</if>
+			<if test=" phoneClass != null and phoneClass != '' ">
+				AND v_tel_user_info.phoneClass = #{phoneClass}
+			</if>
+			<if test=" deviceTypeId != null and deviceTypeId != '' ">
+				AND v_tel_user_info.deviceTypeId = #{deviceTypeId}
+			</if>
+			<if test=" phoneTemplateId != null and phoneTemplateId != '' ">
+				AND v_tel_user_info.phoneTemplateId = #{phoneTemplateId}
+			</if>
+			<if test=" addonModuleFlg != null and addonModuleFlg != '' ">
+				AND v_tel_user_info.addonModuleId1 IS NOT NULL
+			</if>
+			<if test=" voiceMailFlg != null and voiceMailFlg != '' ">
+				AND v_tel_user_info.voiceMailProfileId IS NOT NULL
+			</if>
+			<if test=" busyDestination != null and busyDestination != '' ">
+				AND v_tel_user_info.busyDestination LIKE #{busyDestination}
+			</if>
+			<if test=" callingSearchSpaceNm != null and callingSearchSpaceNm != '' ">
+				AND v_tel_user_info.callingSearchSpaceNm LIKE #{callingSearchSpaceNm}
+			</if>
+			<if test=" chargeBranchCd != null and chargeBranchCd != '' ">
+				AND v_tel_user_info.chargeBranchCd LIKE #{chargeBranchCd}
+			</if>
+			<if test=" chargeParentSectionCd != null and chargeParentSectionCd != '' ">
+				AND v_tel_user_info.chargeParentSectionCd LIKE #{chargeParentSectionCd}
+			</if>
+			<if test=" chargeSectionCd != null and chargeSectionCd != '' ">
+				AND v_tel_user_info.chargeSectionCd LIKE #{chargeSectionCd}
+			</if>
+			<if test=" voiceLogger != null and voiceLogger != '' ">
+				AND v_tel_user_info.voiceLogger = #{voiceLogger}
+			</if>
+			<if test=" pickupGroupId != null and pickupGroupId != '' ">
+				AND v_tel_user_info.pickupGroupId = #{pickupGroupId}
+			</if>
+			<if test=" noansDestination != null and noansDestination != '' ">
+				AND v_tel_user_info.noansDestination LIKE #{noansDestination}
+			</if>
+			<if test=" lineTxtLabel != null and lineTxtLabel != '' ">
+				AND v_tel_user_info.lineTxtLabel LIKE #{lineTxtLabel}
+			</if>
+		</where>　-->
+	</sql>
+
+	<!-- ユーザー一覧検索結果用 -->
+	<sql id="selectSearchUserAndList">
+		SELECT
+			  v_search_info.phoneId
+			, v_search_info.phoneClass
+			, v_search_info.phoneClassNm
+			, v_search_info.deviceTypeId
+			, v_search_info.deviceTypeNm
+			, v_search_info.maxAddonModuleNum
+			, v_search_info.macAddress
+			, v_search_info.callingSearchSpaceId
+			, v_search_info.callingSearchSpaceNm
+			, v_search_info.softkeyTemplateId
+			, v_search_info.softkeyTemplateNm
+			, v_search_info.phoneBranchId
+			, v_search_info.phoneBranchNm
+			, v_search_info.phoneSectionId
+			, v_search_info.phoneSectionNm
+			, v_search_info.phoneTemplateId
+			, v_search_info.phoneTemplateNm
+			, v_search_info.statusCd
+			, v_search_info.statusNm
+			, v_search_info.phoneRemarks
+			, v_search_info.addonModuleId1
+			, v_search_info.addonModuleNm1
+			, v_search_info.addonModuleId2
+			, v_search_info.addonModuleNm2
+			, v_search_info.addonModuleId3
+			, v_search_info.addonModuleNm3
+			, v_search_info.lineId
+			, v_search_info.no
+			, v_search_info.pickupGroupId
+			, v_search_info.pickupGroupNm
+			, v_search_info.voiceMailProfileId
+			, v_search_info.voiceMailProfileNm
+			, v_search_info.directoryNo
+			, v_search_info.allDestination
+			, v_search_info.busyDestination
+			, v_search_info.noansDestination
+			, v_search_info.voiceLogger
+			, v_search_info.voiceLoggerNm
+			, v_search_info.lineTxtLabel
+			, v_search_info.externalPhoneNoMask
+			, v_search_info.dialin
+			, v_search_info.ringSettingNm
+			, v_search_info.callingPartyTransformationMask
+			, v_search_info.gwRepletionSpecialNo
+			, v_search_info.lineRemarks
+			, v_search_info.representativePickup
+			, v_search_info.representativePickupNm
+			, v_search_info.chargeId
+			, v_search_info.chargeBranchCd
+			, v_search_info.chargeParentSectionCd
+			, v_search_info.chargeSectionCd
+			, v_search_info.chargeRemarks
+			, v_search_info.userId
+			, v_search_info.userNmKanji
+			, v_search_info.userSectionId
+			, v_search_info.userSectionNm
+			, v_search_info.enabledSharedUse
+			, v_search_info.fmcId
+			, v_search_info.fomaNo
+			, ROW_NUMBER() OVER (ORDER BY ( ${sort} ) ${order}) AS ROW_NUMBER
+			, CASE
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_DEFAULT}			<!-- 一般紐付け -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_MANY} <!-- 電話     1－N ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_COMMON_USER}		<!-- 共有ユーザー -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- 電話     1－1or0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- ユーザー 1or0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_MANY}   <!-- ライン   1－N 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_SHARED_LINE}		<!-- シェアードライン -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_MANY}   <!-- ユーザー 1－N 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_MULTI_DEVICE} 		<!-- マルチデバイス -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- 電話     1－1or0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       IN (#{constants.TEL_USAGES_STATUS_SINGLE},#{constants.TEL_USAGES_STATUS_NOTHING}) <!-- ユーザー 1or0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE}      <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_MANY}        <!-- 電話     1－N ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE}   <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_MULTI_LINE}			<!-- マルチライン -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ユーザー 1－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_SHARE} <!-- 共用電話 1 -->
+				THEN #{constants.TEL_USAGES_SHARED_TEL}			<!-- 共用電話機 -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- ユーザー 0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- ライン   1－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_SINGLE} <!-- 電話     1－1 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+				THEN #{constants.TEL_USAGES_NOT_LINK_USER}		<!-- 部内在庫電話機 -->
+				WHEN
+					    COALESCE(v_phone_user.status, #{constants.TEL_USAGES_STATUS_NOTHING})     = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ユーザー -->
+					AND COALESCE(v_user_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- ユーザー 0－1 電話 -->
+					AND COALESCE(v_line_tel.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- ライン   0－1 電話 -->
+					AND COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     1－0 ライン -->
+					AND COALESCE(v_search_info.enabledSharedUse, #{constants.ENABLED_SHARED_USE_PRIVATE}) = #{constants.ENABLED_SHARED_USE_PRIVATE} <!-- 共用電話 0 -->
+					AND v_search_info.phoneId IS NOT NULL
+				THEN #{constants.TEL_USAGES_NOT_LINK_USER_LINE}		<!-- 電話機単体 -->
+				WHEN
+					COALESCE(v_tel_line.status, #{constants.TEL_USAGES_STATUS_NOTHING})       = #{constants.TEL_USAGES_STATUS_NOTHING} <!-- 電話     0－0 ライン -->
+				THEN #{constants.TEL_USAGES_NOT_LINK_TEL}		<!-- 電話機と紐付いていないユーザ -->
+				ELSE #{constants.TEL_USAGES_MANY}				<!-- 複数存在した場合 -->
+			END AS telUsagesStatus <!-- ユーザー×電話×ラインのパターンステータス -->
+		FROM
+			(
+				<include refid="selectUserAndTelList"/>
+			) v_search_info
+			LEFT OUTER JOIN (
+				SELECT
+					phone_id,
+					CASE
+						WHEN count(phone_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
+						ELSE #{constants.TEL_USAGES_STATUS_MANY}
+					END AS status
+				FROM
+					rel_cucm_user_phone	<!-- ユーザー－電話 -->
+				WHERE
+					delete_flg = #{constants.COM_FLG_OFF}
+				GROUP BY
+					phone_id
+				) v_phone_user
+				ON v_search_info.phoneId = v_phone_user.phone_id
+			LEFT OUTER JOIN (
+				SELECT
+					line_id,
+					CASE
+						WHEN count(line_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
+						ELSE #{constants.TEL_USAGES_STATUS_MANY}
+					END AS status
+				FROM
+					rel_cucm_phone_line	<!-- ライン－電話 -->
+				WHERE
+					delete_flg = #{constants.COM_FLG_OFF}
+				GROUP BY
+					line_id
+				) v_line_tel
+				ON v_search_info.lineId = v_line_tel.line_id
+			LEFT OUTER JOIN (
+				SELECT
+					user_id,
+				CASE
+					WHEN count(user_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
+					ELSE #{constants.TEL_USAGES_STATUS_MANY}
+				END AS status
+				FROM
+					rel_cucm_user_phone	<!-- 電話－ユーザー -->
+				WHERE
+					delete_flg = #{constants.COM_FLG_OFF}
+				GROUP BY
+					user_id
+				) v_user_tel
+				ON v_search_info.userId = v_user_tel.user_id
+			LEFT OUTER JOIN (
+				SELECT
+					phone_id,
+					CASE
+						WHEN count(phone_id) <![CDATA[<=]]> 1 THEN #{constants.TEL_USAGES_STATUS_SINGLE}
+						ELSE #{constants.TEL_USAGES_STATUS_MANY}
+					END AS status
+				FROM
+					rel_cucm_phone_line	<!-- 電話－ライン -->
+				WHERE
+					delete_flg = #{constants.COM_FLG_OFF}
+				GROUP BY
+					phone_id
+				) v_tel_line
+				ON v_search_info.phoneId = v_tel_line.phone_id
+	</sql>
+
+	<!-- ユーザーと電話機一覧件数取得 -->
+	<select id="getUserAndTelTotal" parameterType="UserAndTelSearchModel" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM
+			(
+			<include refid="selectUserAndTelList"/>
+			) v_info
+	</select>
+
+	<!-- ユーザーと電話機一覧取得 -->
+	<select id="getUserAndTelList" parameterType="UserAndTelSearchModel" resultType="UserAndTelSearchResultModel">
+		SELECT
+			  v_info.phoneId
+			, v_info.phoneClass
+			, v_info.phoneClassNm
+			, v_info.deviceTypeId
+			, v_info.deviceTypeNm
+			, v_info.maxAddonModuleNum
+			, v_info.macAddress
+			, v_info.callingSearchSpaceId
+			, v_info.callingSearchSpaceNm
+			, v_info.softkeyTemplateId
+			, v_info.softkeyTemplateNm
+			, v_info.phoneBranchId
+			, v_info.phoneBranchNm
+			, v_info.phoneSectionId
+			, v_info.phoneSectionNm
+			, v_info.phoneTemplateId
+			, v_info.phoneTemplateNm
+			, v_info.statusCd
+			, v_info.statusNm
+			, v_info.phoneRemarks
+			, v_info.addonModuleId1
+			, v_info.addonModuleNm1
+			, v_info.addonModuleId2
+			, v_info.addonModuleNm2
+			, v_info.addonModuleId3
+			, v_info.addonModuleNm3
+			, v_info.lineId
+			, v_info.no
+			, v_info.pickupGroupId
+			, v_info.pickupGroupNm
+			, v_info.voiceMailProfileId
+			, v_info.voiceMailProfileNm
+			, v_info.directoryNo
+			, v_info.allDestination
+			, v_info.busyDestination
+			, v_info.noansDestination
+			, v_info.voiceLogger
+			, v_info.voiceLoggerNm
+			, v_info.lineTxtLabel
+			, v_info.externalPhoneNoMask
+			, v_info.dialin
+			, v_info.ringSettingNm
+			, v_info.callingPartyTransformationMask
+			, v_info.gwRepletionSpecialNo
+			, v_info.lineRemarks
+			, v_info.representativePickup
+			, v_info.representativePickupNm
+			, v_info.chargeId
+			, v_info.chargeBranchCd
+			, v_info.chargeParentSectionCd
+			, v_info.chargeSectionCd
+			, v_info.chargeRemarks
+			, v_info.userId
+			, v_info.userNmKanji
+			, v_info.userSectionId
+			, v_info.userSectionNm
+			, v_info.enabledSharedUse
+			, v_info.fmcId
+			, v_info.fomaNo
+			, v_info.telUsagesStatus
+		FROM
+			(
+				<include refid="selectSearchUserAndList"/>
+			) v_info
+		WHERE
+			v_info.ROW_NUMBER BETWEEN #{start} AND #{end}
+	</select>
+
+	<!-- 一覧のエクスポート用の値を取得（CSV） -->
+	<select id="getUserAndTelCsvList" parameterType="UserAndTelSearchModel" resultType="java.util.LinkedHashMap">
+		SELECT
+			  CASE
+				WHEN COALESCE(statusCd, '1') = '1' THEN ''
+				ELSE 'BAT出力待'
+			  END AS status
+			, COALESCE(directoryNo, '') AS directoryNo
+			, COALESCE(dialin, '') AS dialin
+			, COALESCE(externalPhoneNoMask, '') AS externalPhoneNoMask
+			, COALESCE(no::text, '') AS no
+			, COALESCE(userNmKanji, '') AS userNmKanji
+			, COALESCE(userSectionNm, '') AS userSectionNm
+			, COALESCE(pickupGroupNm, '') AS pickupGroupNm
+			, COALESCE(busyDestination, '') AS busyDestination
+			, COALESCE(noansDestination, '') AS noansDestination
+			, COALESCE(chargeBranchCd, '') AS chargeBranchCd
+			, COALESCE(chargeParentSectionCd, '') AS chargeParentSectionCd
+			, COALESCE(chargeSectionCd, '') AS chargeSectionCd
+			, COALESCE(chargeRemarks, '') AS chargeRemarks
+			, COALESCE(voiceLoggerNm, '') AS voiceLoggerNm
+			, COALESCE(phoneClassNm, '') AS phoneClassNm
+			, COALESCE(deviceTypeNm, '') AS deviceTypeNm
+			, COALESCE(macAddress, '') AS macAddress
+			, COALESCE(phoneTemplateNm, '') AS phoneTemplateNm
+			, COALESCE(softkeyTemplateNm, '') AS softkeyTemplateNm
+			, COALESCE(phoneBranchNm, '') AS phoneBranchNm
+			, COALESCE(phoneSectionNm, '') AS phoneSectionNm
+			, COALESCE(callingSearchSpaceNm, '') AS callingSearchSpaceNm
+			, COALESCE(addonModuleNm1, '') AS addonModuleNm1
+			, COALESCE(addonModuleNm2, '') AS addonModuleNm2
+			, COALESCE(addonModuleNm3, '') AS addonModuleNm3
+			, COALESCE(ringSettingNm, '') AS ringSettingNm
+			, COALESCE(lineRemarks, '') AS lineRemarks
+			, COALESCE(lineTxtLabel, '') AS lineTxtLabel
+			, COALESCE(allDestination, '') AS allDestination
+			, COALESCE(phoneRemarks, '') AS phoneRemarks
+			, COALESCE(voiceMailProfileNm, '') AS voiceMailProfileNm
+			, COALESCE(fomaNo::text, '') AS fomaNo
+			, COALESCE(callingPartyTransformationMask, '') AS callingPartyTransformationMask
+			, COALESCE(representativePickupNm, '') AS representativePickupNm
+			, COALESCE(gwRepletionSpecialNo, '') AS gwRepletionSpecialNo
+		FROM
+			(
+				<include refid="selectSearchUserAndList"/>
+			) v_info
+	</select>
+
+	<!-- ユーザーと電話機の紐付きの削除フラグを取得 -->
+	<select id="getTelLineDeleteFlg" parameterType="UserAndTelUpdateModel" resultType="String">
+		SELECT
+			R_CUCM_PHONE_LINE.DELETED AS deleted
+		FROM
+			R_CUCM_PHONE_LINE R_CUCM_PHONE_LINE
+		WHERE
+			R_CUCM_PHONE_LINE.CUCM_PHONE_ID  = #{telId}
+		AND R_CUCM_PHONE_LINE.CUCM_LINE_ID   = #{lineId}
+		AND R_CUCM_PHONE_LINE.INDEX          = #{lineIndex}
+	</select>
+
+	<!-- 共有ユーザーの店部課情報を取得します -->
+	<select id="getSharedUserSectionInfo" parameterType="Integer" resultType="Map">
+		SELECT
+		  M_SECTION.COMPANY_ID     AS "companyId"
+		  , M_SECTION.SECTION_ID   AS "sectionId"
+		  , M_SECTION.SECTION_NAME AS "sectionName"
+		  , M_SECTION.PRINT_ORDER  AS "printOrder"
+		FROM
+			CUCM_PHONE CUCM_PHONE INNER JOIN M_SECTION M_SECTION
+			ON  CUCM_PHONE.COMPANY_ID = M_SECTION.COMPANY_ID
+			AND CUCM_PHONE.SECTION_ID = M_SECTION.SECTION_ID
+		WHERE
+			CUCM_PHONE.CUCM_PHONE_ID = #{telId}
+	</select>
+
+	<!-- ユーザー情報を取得（CSV） -->
+	<select id="getUserInfoCsv" parameterType="UserAndTelUpdateModel" resultType="java.util.LinkedHashMap">
+		SELECT
+			  user_id::text
+			, user_role
+			, COALESCE(shared_id::text, '') AS shared_id
+			, enabled_shared_use
+			, fulltime_employee
+			, biz_employee_id
+			, login_id
+			, login_pw
+			, user_locale
+			, cucm_login_id
+			, cucm_login_pw
+			, COALESCE(user_nm_kanji, '') AS user_nm_kanji
+			, COALESCE(user_nm_kana, '') AS user_nm_kana
+			, COALESCE(birthday, '') AS birthday
+			, last_nm
+			, first_nm
+			, pin
+			, COALESCE(telephone_no, '') AS telephone_no
+			, COALESCE(enable_cti_application_use, '') AS enable_cti_application_use
+			, COALESCE(manager_user_id, '') AS manager_user_id
+			, COALESCE(department, '') AS department
+			, TO_CHAR(last_pw_update, #{constants.TIMESTAMP_FORMAT}) AS last_pw_update
+			, authenticate_failure_num::text
+			, account_lock
+			, TO_CHAR(create_date, #{constants.TIMESTAMP_FORMAT}) AS create_date
+			, TO_CHAR(update_date, #{constants.TIMESTAMP_FORMAT}) AS update_date
+		FROM
+			trn_user
+		WHERE
+			EXISTS(
+				SELECT
+					1
+				FROM
+					(
+						<include refid="selectUserAndTelList"/>
+					) V_INFO
+				WHERE
+					trn_user.user_id = V_INFO.userId
+				GROUP BY
+					V_INFO.userId
+			)
+		ORDER BY
+			user_id
+	</select>
+
+	<!-- 電話機情報を取得（CSV） -->
+	<select id="getPhoneInfoCsv" parameterType="UserAndTelUpdateModel" resultType="java.util.LinkedHashMap">
+		SELECT
+			  phone_id::text
+			, branch_id::text
+			, section_id::text
+			, device_pool_id::text
+			, COALESCE(phone_template_id::text, '') AS phone_template_id
+			, calling_search_space_id::text
+			, device_type_id::text
+			, softkey_template_id::text
+			, COALESCE(owner_user_id::text, '') AS owner_user_id
+			, device_nm
+			, COALESCE(addon_module_id_1::text, '') AS addon_module_id_1
+			, COALESCE(addon_module_id_2::text, '') AS addon_module_id_2
+			, COALESCE(addon_module_id_3::text, '') AS addon_module_id_3
+			, speed_dial #>> '{}' AS speed_dial
+			, COALESCE(remarks::text, '') AS remarks
+			, update_status
+			, delete_flg
+			, TO_CHAR(create_date, #{constants.TIMESTAMP_FORMAT}) AS create_date
+			, TO_CHAR(update_date, #{constants.TIMESTAMP_FORMAT}) AS update_date
+		FROM
+			trn_phone
+		WHERE
+			EXISTS(
+				SELECT
+					1
+				FROM
+					(
+						<include refid="selectUserAndTelList"/>
+					) V_INFO
+				WHERE
+					trn_phone.phone_id = V_INFO.phoneId
+				GROUP BY
+					V_INFO.phoneId
+			)
+		ORDER BY
+			phone_id
+	</select>
+
+	<!-- ユーザー電話機情報を取得（CSV） -->
+	<select id="getUserPhoneInfoCsv" parameterType="UserAndTelUpdateModel" resultType="java.util.LinkedHashMap">
+		SELECT
+			  user_id::text
+			, phone_id::text
+			, delete_flg
+			, TO_CHAR(create_date, #{constants.TIMESTAMP_FORMAT}) AS create_date
+			, TO_CHAR(update_date, #{constants.TIMESTAMP_FORMAT}) AS update_date
+		FROM
+			rel_cucm_user_phone
+		WHERE
+			EXISTS(
+				SELECT
+					1
+				FROM
+					(
+						<include refid="selectUserAndTelList"/>
+					) V_INFO
+				WHERE
+					rel_cucm_user_phone.user_id   = V_INFO.userId
+				AND rel_cucm_user_phone.phone_id = V_INFO.phoneId
+				GROUP BY
+					V_INFO.userId
+					, V_INFO.phoneId
+			)
+		ORDER BY
+			user_id
+			, phone_id
+	</select>
+
+	<!-- ライン情報の取得（CSV） -->
+	<select id="getLineInfoCsv" parameterType="UserAndTelUpdateModel" resultType="java.util.LinkedHashMap">
+		SELECT
+			  line_id::text
+			, COALESCE(fmc_id::text, '') AS fmc_id
+			, COALESCE(charge_id::text, '') AS charge_id
+			, COALESCE(voice_mail_profile_id::text, '') AS voice_mail_profile_id
+			, COALESCE(pickup_group_id::text, '') AS pickup_group_id
+			, directory_no
+			, COALESCE(fwd_all_destination, '')  AS fwd_all_destination
+			, COALESCE(fwd_all_css::text, '') AS fwd_all_css
+			, COALESCE(fwd_busy_destination, '')  AS fwd_busy_destination
+			, COALESCE(fwd_busy_css::text, '') AS fwd_busy_css
+			, COALESCE(fwd_noans_destination, '')  AS fwd_noans_destination
+			, COALESCE(fwd_noans_css::text, '') AS fwd_noans_css
+			, fwd_noans_ring_duration::text
+			, maximum_no_of_calls::text
+			, busy_trigger::text
+			, COALESCE(calling_party_transformation_mask, '') AS calling_party_transformation_mask
+			, COALESCE(gw_repletion_special_no, '') AS gw_repletion_special_no
+			, voice_logger
+			, representative_pickup::text
+			, update_status
+			, TO_CHAR(create_date, #{constants.TIMESTAMP_FORMAT}) AS create_date
+			, TO_CHAR(update_date, #{constants.TIMESTAMP_FORMAT}) AS update_date
+		FROM
+			trn_line
+		WHERE
+			EXISTS(
+				SELECT
+					1
+				FROM
+					(
+						<include refid="selectUserAndTelList"/>
+					) V_INFO
+				WHERE
+					trn_line.line_id = V_INFO.lineId
+				GROUP BY
+					V_INFO.lineId
+			)
+		ORDER BY
+			line_id
+	</select>
+
+	<!-- 電話ライン情報の取得（CSV） -->
+	<select id="getPhoneLineInfoCsv" parameterType="UserAndTelUpdateModel" resultType="java.util.LinkedHashMap">
+		SELECT
+			  phone_id::text
+			, line_id::text
+			, no::text
+			, COALESCE(line_txt_label, '')  AS line_txt_label
+			, COALESCE(external_phone_no_mask, '')  AS external_phone_no_mask
+			, COALESCE(ring_setting_nm, '')  AS ring_setting_nm
+			, COALESCE(dialin, '')  AS dialin
+			, COALESCE(remarks, '')  AS remarks
+			, delete_flg
+			, TO_CHAR(create_date, #{constants.TIMESTAMP_FORMAT}) AS create_date
+			, TO_CHAR(update_date, #{constants.TIMESTAMP_FORMAT}) AS update_date
+		FROM
+			rel_cucm_phone_line
+		WHERE
+			EXISTS(
+				SELECT
+					1
+				FROM
+					(
+						<include refid="selectUserAndTelList"/>
+					) V_INFO
+				WHERE
+					rel_cucm_phone_line.phone_id = V_INFO.phoneId
+				AND rel_cucm_phone_line.line_id  = V_INFO.lineId
+				GROUP BY
+					V_INFO.phoneId
+					, V_INFO.lineId
+			)
+		ORDER BY
+			line_id
+	</select>
+
+	<!-- 課金関連情報の取得（CSV） -->
+	<select id="getChargeAssociationInfoCsv" parameterType="UserAndTelUpdateModel" resultType="java.util.LinkedHashMap">
+		SELECT
+			charge_id::text
+			, branch_id::text
+			, section_id::text
+			, COALESCE(remarks, '') AS remarks
+			, TO_CHAR(create_date, #{constants.TIMESTAMP_FORMAT}) AS create_date
+			, TO_CHAR(update_date, #{constants.TIMESTAMP_FORMAT}) AS update_date
+		FROM
+			trn_charge_association
+		WHERE
+			EXISTS(
+				SELECT
+					1
+				FROM
+					(
+						<include refid="selectUserAndTelList"/>
+					) V_INFO
+				WHERE
+					trn_charge_association.charge_id  = V_INFO.chargeId
+				GROUP BY
+					V_INFO.chargeId
+			)
+		ORDER BY
+			charge_id
+	</select>
+
+	<!-- CUCの取得（CSV） -->
+	<select id="getCucAssociationInfoCsv" parameterType="UserAndTelUpdateModel" resultType="java.util.LinkedHashMap">
+		SELECT
+			  cuc_id::text
+			, phone_id::text
+			, TO_CHAR(create_date, #{constants.TIMESTAMP_FORMAT}) AS create_date
+			, TO_CHAR(update_date, #{constants.TIMESTAMP_FORMAT}) AS update_date
+		FROM
+			trn_cuc_association
+		WHERE
+			EXISTS(
+				SELECT
+					1
+				FROM
+					(
+						<include refid="selectUserAndTelList"/>
+					) V_INFO
+				WHERE
+					trn_cuc_association.phone_id  = V_INFO.phoneId
+				GROUP BY
+					V_INFO.phoneId
+			)
+		ORDER BY
+			phone_id
+	</select>
+
+	<!-- オフィスリンクの取得（CSV） -->
+	<select id="getOfficelinkInfoCsv" parameterType="UserAndTelUpdateModel" resultType="java.util.LinkedHashMap">
+		SELECT
+			  fmc_id::text
+			, directory_no
+			, foma_no
+			, COALESCE(sip_id, '') AS sip_id
+			, COALESCE(sip_pw, '') AS sip_pw
+			, web_cuscom_user_nm
+			, web_cuscom_pw
+			, update_status
+			, delete_flg
+			, TO_CHAR(create_date, #{constants.TIMESTAMP_FORMAT}) AS create_date
+			, TO_CHAR(update_date, #{constants.TIMESTAMP_FORMAT}) AS update_date
+		FROM
+			trn_officelink_fmc
+		WHERE
+			EXISTS(
+				SELECT
+					1
+				FROM
+					(
+						<include refid="selectUserAndTelList"/>
+					) V_INFO
+				WHERE
+					trn_officelink_fmc.fmc_id  = V_INFO.fmcId
+				GROUP BY
+					V_INFO.fmcId
+			)
+		ORDER BY
+			fmc_id
+	</select>
+</mapper>	
