@@ -1,0 +1,3 @@
+CREATE TABLE  (
+);
+COMMENT ON TABLE  IS '';
