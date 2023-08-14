@@ -9,7 +9,26 @@ CREATE ROLE root;
 ALTER ROLE root WITH SUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION PASSWORD 'md52845e10ad19ccc5104762fcf53c68ebc';
 
 --DB作成
-CREATE DATABASE irdb WITH TEMPLATE = template0 OWNER = postgresuser;
+-- Database: irdb
+-- ユーザーセッションを確認し、irdb データベースに接続されているセッションを切断します。
+SELECT pg_terminate_backend (pg_stat_activity.pid)
+FROM pg_stat_activity
+WHERE pg_stat_activity.datname = 'irdb';
+
+
+DROP DATABASE irdb;
+
+CREATE DATABASE irdb
+    WITH 
+	TEMPLATE = template0
+    OWNER = postgresuser
+    ENCODING = 'UTF8'
+    LC_COLLATE = 'Japanese_Japan.932'
+    LC_CTYPE = 'Japanese_Japan.932'
+    TABLESPACE = pg_default
+    CONNECTION LIMIT = -1;
+-- DROP DATABASE irdb;
+-- CREATE DATABASE irdb WITH TEMPLATE = template0 OWNER = postgresuser;
 
 --権限変更
 REVOKE ALL ON DATABASE template1 FROM PUBLIC;
